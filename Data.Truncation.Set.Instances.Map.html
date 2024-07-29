@@ -1,0 +1,18 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Data.Truncation.Set.Instances.Map</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Symbol">{-#</a> <a id="5" class="Keyword">OPTIONS</a> <a id="13" class="Pragma">--safe</a> <a id="20" class="Symbol">#-}</a>
+<a id="24" class="Keyword">module</a> <a id="31" href="Data.Truncation.Set.Instances.Map.html" class="Module">Data.Truncation.Set.Instances.Map</a> <a id="65" class="Keyword">where</a>
+
+<a id="72" class="Keyword">open</a> <a id="77" class="Keyword">import</a> <a id="84" href="Foundations.Base.html" class="Module">Foundations.Base</a>
+<a id="101" class="Keyword">open</a> <a id="106" class="Keyword">import</a> <a id="113" href="Foundations.HLevel.html" class="Module">Foundations.HLevel</a>
+
+<a id="133" class="Keyword">open</a> <a id="138" class="Keyword">import</a> <a id="145" href="Meta.Effect.Base.html" class="Module">Meta.Effect.Base</a>
+<a id="162" class="Keyword">open</a> <a id="167" class="Keyword">import</a> <a id="174" href="Meta.Effect.Map.html" class="Module">Meta.Effect.Map</a>
+<a id="190" class="Keyword">open</a> <a id="195" class="Keyword">import</a> <a id="202" href="Meta.Inductive.html" class="Module">Meta.Inductive</a>
+
+<a id="218" class="Keyword">open</a> <a id="223" class="Keyword">import</a> <a id="230" href="Data.Truncation.Set.Base.html" class="Module">Data.Truncation.Set.Base</a>
+
+<a id="256" class="Keyword">instance</a>
+  <a id="Map-∥-∥₂"></a><a id="267" href="Data.Truncation.Set.Instances.Map.html#267" class="Function">Map-∥-∥₂</a> <a id="276" class="Symbol">:</a> <a id="278" href="Meta.Effect.Map.html#183" class="Record">Map</a> <a id="282" class="Symbol">(</a><a id="283" href="Meta.Effect.Base.html#127" class="InductiveConstructor">eff</a> <a id="287" href="Data.Truncation.Set.Base.html#94" class="Datatype Operator">∥_∥₂</a><a id="291" class="Symbol">)</a>
+  <a id="295" href="Data.Truncation.Set.Instances.Map.html#267" class="Function">Map-∥-∥₂</a> <a id="304" class="Symbol">.</a><a id="305" href="Meta.Effect.Map.html#256" class="Field">map</a> <a id="309" href="Data.Truncation.Set.Instances.Map.html#309" class="Bound">f</a> <a id="311" class="Symbol">=</a> <a id="313" href="Meta.Inductive.html#1495" class="Function">rec!</a> <a id="318" class="Symbol">(</a><a id="319" href="Data.Truncation.Set.Base.html#133" class="InductiveConstructor Operator">∣_∣₂</a> <a id="324" href="Foundations.Pi.Base.html#2101" class="Function Operator">∘</a> <a id="326" href="Data.Truncation.Set.Instances.Map.html#309" class="Bound">f</a><a id="327" class="Symbol">)</a> <a id="329" class="Keyword">where</a>
+    <a id="339" class="Keyword">instance</a> <a id="348" href="Data.Truncation.Set.Instances.Map.html#348" class="Function">_</a> <a id="350" class="Symbol">=</a> <a id="352" href="Foundations.HLevel.Base.html#9253" class="Function">hlevel-basic-instance</a> <a id="374" class="Number">2</a> <a id="376" href="Data.Truncation.Set.Base.html#156" class="InductiveConstructor">squash₂</a>
+</pre></body></html>

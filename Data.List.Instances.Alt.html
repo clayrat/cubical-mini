@@ -1,0 +1,16 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Data.List.Instances.Alt</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Symbol">{-#</a> <a id="5" class="Keyword">OPTIONS</a> <a id="13" class="Pragma">--safe</a> <a id="20" class="Symbol">#-}</a>
+<a id="24" class="Keyword">module</a> <a id="31" href="Data.List.Instances.Alt.html" class="Module">Data.List.Instances.Alt</a> <a id="55" class="Keyword">where</a>
+
+<a id="62" class="Keyword">open</a> <a id="67" class="Keyword">import</a> <a id="74" href="Foundations.Base.html" class="Module">Foundations.Base</a>
+
+<a id="92" class="Keyword">open</a> <a id="97" class="Keyword">import</a> <a id="104" href="Meta.Effect.Alt.html" class="Module">Meta.Effect.Alt</a>
+<a id="120" class="Keyword">open</a> <a id="125" class="Keyword">import</a> <a id="132" href="Meta.Effect.Base.html" class="Module">Meta.Effect.Base</a>
+
+<a id="150" class="Keyword">open</a> <a id="155" class="Keyword">import</a> <a id="162" href="Data.List.Base.html" class="Module">Data.List.Base</a>
+
+<a id="178" class="Keyword">instance</a>
+  <a id="Alt-List"></a><a id="189" href="Data.List.Instances.Alt.html#189" class="Function">Alt-List</a> <a id="198" class="Symbol">:</a> <a id="200" href="Meta.Effect.Alt.html#251" class="Record">Alt</a> <a id="204" class="Symbol">(</a><a id="205" href="Meta.Effect.Base.html#127" class="InductiveConstructor">eff</a> <a id="209" href="Agda.Builtin.List.html#147" class="Datatype">List</a><a id="213" class="Symbol">)</a>
+  <a id="217" href="Data.List.Instances.Alt.html#189" class="Function">Alt-List</a> <a id="226" class="Symbol">.</a><a id="227" href="Meta.Effect.Alt.html#324" class="Field">fail</a> <a id="232" class="Symbol">=</a> <a id="234" href="Agda.Builtin.List.html#184" class="InductiveConstructor">[]</a>
+  <a id="239" href="Data.List.Instances.Alt.html#189" class="Function">Alt-List</a> <a id="248" class="Symbol">.</a><a id="249" href="Meta.Effect.Alt.html#342" class="Field Operator">_&lt;|&gt;_</a> <a id="255" class="Symbol">=</a> <a id="257" href="Data.List.Base.html#725" class="Function Operator">_++_</a>
+</pre></body></html>
