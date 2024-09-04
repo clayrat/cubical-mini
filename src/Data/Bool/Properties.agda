@@ -110,9 +110,6 @@ and-compl = witness!
 not-and : ∀ x y → not (x and y) ＝ not x or not y
 not-and = witness!
 
-not-and : ∀ x y → not (x and y) ＝ not x or not y
-not-and = witness!
-
 -- disjunction
 
 or-so-≃
@@ -183,9 +180,6 @@ or-compl = witness!
 not-or : ∀ x y → not (x or y) ＝ not x and not y
 not-or = witness!
 
-not-or : ∀ x y → not (x or y) ＝ not x and not y
-not-or = witness!
-
 -- xor
 
 -- FIXME XXX
@@ -195,12 +189,6 @@ reflects-xor {(true)}  = auto
 
 xor-assoc : ∀ x y z → (x xor y) xor z ＝ x xor y xor z
 xor-assoc = witness!
-
-not-xor-l : ∀ x y → not (x xor y) ＝ not x xor y
-not-xor-l = witness!
-
-not-xor-r : ∀ x y → not (x xor y) ＝ x xor not y
-not-xor-r = witness!
 
 not-xor-l : ∀ x y → not (x xor y) ＝ not x xor y
 not-xor-l = witness!

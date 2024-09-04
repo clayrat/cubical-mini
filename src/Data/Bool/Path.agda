@@ -16,12 +16,6 @@ private variable
   b b₁ b₂ : Bool
   n : HLevel
 
-not-inj : not b₁ ＝ not b₂ → b₁ ＝ b₂
-not-inj {(false)} {(false)} e = refl
-not-inj {(false)} {(true)}  e = e ⁻¹
-not-inj {(true)}  {(false)} e = e ⁻¹
-not-inj {(true)}  {(true)}  e = refl
-
 instance
   Reflects-Bool-Path : Reflects (b₁ ＝ b₂) (b₁ equals b₂)
   Reflects-Bool-Path {(false)} {(false)} = ofʸ refl

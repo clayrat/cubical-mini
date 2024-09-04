@@ -28,10 +28,6 @@ empty? : List A → Bool
 empty? []      = false
 empty? (_ ∷ _) = true
 
-empty? : List A → Bool
-empty? []      = false
-empty? (_ ∷ _) = true
-
 snoc : List A → A → List A
 snoc []      x = x ∷ []
 snoc (y ∷ l) x = y ∷ snoc l x
