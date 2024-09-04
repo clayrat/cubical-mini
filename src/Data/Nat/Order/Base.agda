@@ -284,8 +284,6 @@ instance
 
 -- well-foundedness
 
--- well-foundedness
-
 opaque
   unfolding _<_
   <-ind : ∀ {ℓ″} {P : ℕ → 𝒰 ℓ″}
