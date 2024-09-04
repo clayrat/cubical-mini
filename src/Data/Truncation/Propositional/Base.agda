@@ -3,8 +3,10 @@ module Data.Truncation.Propositional.Base where
 
 open import Meta.Prelude
 
-open import Data.Sum.Base
-  using (_⊎_)
+open import Data.Bool.Base using (Bool)
+open import Data.Empty.Base using ()
+open import Data.Reflects.Base as Reflects
+open import Data.Sum.Base using ()
 
 data ∥_∥₁ {ℓ} (A : Type ℓ) : Type ℓ where
   ∣_∣₁    : A → ∥ A ∥₁
@@ -31,33 +33,24 @@ elim P-prop incc (squash₁ x y i) =
 ∃ : (A : Type ℓ) (B : A → Type ℓ′) → Type (ℓ ⊔ ℓ′)
 ∃ A B = ∥ Σ[ B ] ∥₁
 
-infixr 6 ∃-syntax-und
-
-∃-syntax-und
-  : ⦃ _ : Underlying A ⦄ (X : A) (F : ⌞ X ⌟⁰ → Type ℓ′)
-  → Type _
-∃-syntax-und X F = ∃ ⌞ X ⌟⁰ F
-
-syntax ∃-syntax-und X (λ x → F) = ∃[ x ꞉ X ] F
+instance
+  ∃-Type
+    : {A : Type ℓ} ⦃ ua : Underlying A ⦄
+    → ∃-notation A (Type ℓ′) (Type (ua .ℓ-underlying ⊔ ℓ′))
+  ∃-Type .∃-notation.∃ X = ∃ ⌞ X ⌟
 
 Existential₁ⁿ : Variadic-binding¹
 Existential₁ⁿ = ∥_∥₁ ∘ Existentialⁿ
 
 infixr 6 ∃[_]
-macro ∃[_] = quantifier-macro (quote Existential₁ⁿ)
+∃[_] : ⦃ r : Total-Σ A ⦄ → A → Type (r .ℓ-total-Σ)
+∃[_] f = ∥ Σ[ f ] ∥₁
 
 
 -- Mere disjunction
-infixr 7 _⊎₁_
-_⊎₁_ : Type ℓ → Type ℓ′ → Type (ℓ ⊔ ℓ′)
-_⊎₁_ = mapⁿ 2 ∥_∥₁ _⊎_
-
-Sum₁ⁿ : Variadic²
-Sum₁ⁿ {arity} P Q = mapⁿ arity ∥_∥₁ (Sumⁿ P Q)
-
-infixr 7 _⊎̇₁_
-macro _⊎̇₁_ = binop-macro (quote Sum₁ⁿ)
-
+instance
+  ⊎₁-Type : ⊎₁-notation (Type ℓ) (Type ℓ′) (Type (ℓ ⊔ ℓ′))
+  ⊎₁-Type ._⊎₁_ A B = ∥ A ⊎ B ∥₁
 
 fibre₁ : {A : Type ℓ} {B : Type ℓ′} (f : A → B) (y : B) → Type (ℓ ⊔ ℓ′)
 fibre₁ = mapⁿ 2 ∥_∥₁ fibre
@@ -76,6 +69,9 @@ instance
     → Inductive (∀ x → P x) ℓm
   Inductive-∥-∥₁ ⦃ i ⦄ .Inductive.methods = i .Inductive.methods
   Inductive-∥-∥₁ ⦃ i ⦄ .Inductive.from f = elim (λ _ → hlevel 1) (i .Inductive.from f)
+
+  Reflects-∥-∥₁ : {b : Bool} → ⦃ Reflects A b ⦄ → Reflects ∥ A ∥₁ b
+  Reflects-∥-∥₁ = Reflects.dmap ∣_∣₁ rec! auto
 
 proj!
   : ⦃ A-prop : H-Level 1 A ⦄

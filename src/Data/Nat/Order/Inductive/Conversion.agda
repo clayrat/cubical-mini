@@ -8,30 +8,31 @@ open import Data.Nat.Order.Inductive.Base
 open import Data.Nat.Order.Inductive.Decidability
 open import Data.Nat.Path
 open import Data.Nat.Properties
+open import Data.Reflects.Base
 open import Data.Sum.Base as ⊎
 open import Data.Sum.Path as ⊎
 
 private variable m n k : ℕ
 
-=→≤ : ∀[ _＝_ {A = ℕ} →̇ _≤_ ]
+=→≤ : ∀[ _＝_ ⇒ _≤_ ]
 =→≤ p = ≤-subst refl p refl
 
-<→≤ : ∀[ _<_ →̇ _≤_ ]
+<→≤ : ∀[ _<_ ⇒ _≤_ ]
 <→≤ p = ≤-ascend ∙ p
 
-<→≠ : ∀[ _<_ →̇ _≠_ {A = ℕ} ]
-<→≠ {x = m} {x = n} m<n m=n = suc≰id (subst (_≤ n) (ap suc m=n) m<n)
+<→≠ : ∀[ _<_ ⇒ _≠_ ]
+<→≠ {x = m} {x = n} m<n m=n = false! $ subst (_≤ n) (ap suc m=n) m<n
 
 ≤≃≯ : (m ≤ n) ≃ (m ≯ n)
 ≤≃≯ = prop-extₑ! ≤→≯ ≯→≤ where
-  ≤→≯ : ∀[ _≤_ →̇ _≯_ ]
+  ≤→≯ : ∀[ _≤_ ⇒ _≯_ ]
   ≤→≯ (s≤s p) (s≤s q) = ≤→≯ p q
 
-  ≯→≤ : ∀[ _≯_ →̇ _≤_ ]
+  ≯→≤ : ∀[ _≯_ ⇒ _≤_ ]
   ≯→≤ {x = m} {x = n} f =
-    [ (λ p → absurd $ f $ <→≤ p)
+    [ (λ p → false! $ f $ <→≤ p)
     , [ ≤-peel
-      , (λ p → absurd $ f $ =→≤ p)
+      , (λ p → false! $ f $ =→≤ p)
       ]ᵤ
     ]ᵤ $ ≤-split (suc n) m
 
@@ -39,20 +40,20 @@ private variable m n k : ℕ
       ≃ (m < n) ⊎ (m ＝ n)
 ≤≃<⊎= = prop-extₑ (hlevel 1) (disjoint-⊎-is-prop! (<→≠ $ₜ²_)) ≤→<⊎= <⊎=→≤
   where
-  ≤→<⊎= : ∀[ _≤_ →̇ _<_ ⊎̇ _＝_ {A = ℕ} ]
+  ≤→<⊎= : ∀[ _≤_ ⇒ _<_ ⊎ _＝_ {A = ℕ} ]
   ≤→<⊎= {x = 0}     {x = 0}     z≤      = inr refl
   ≤→<⊎= {x = 0}     {x = suc n} z≤      = inl (s≤s z≤)
   ≤→<⊎= {x = suc m} {x = suc n} (s≤s p) = ⊎.dmap s≤s (ap suc) $ ≤→<⊎= p
 
-  <⊎=→≤ : ∀[ _<_ ⊎̇ _＝_ {A = ℕ} →̇ _≤_ ]
+  <⊎=→≤ : ∀[ _<_ ⊎ _＝_ {A = ℕ} ⇒ _≤_ ]
   <⊎=→≤ {x = m} {x = n} = [ <→≤ , =→≤ ]ᵤ
 
 <≃≱ : (m < n) ≃ (m ≱ n)
 <≃≱ = prop-extₑ! <→≱ ≱→< where
-  <→≱ : ∀[ _<_ →̇ _≱_ ]
+  <→≱ : ∀[ _<_ ⇒ _≱_ ]
   <→≱ m<n m≥n = (≤≃≯ # m≥n)  m<n
 
-  ≱→< : ∀[ _≱_ →̇ _<_ ]
+  ≱→< : ∀[ _≱_ ⇒ _<_ ]
   ≱→< p = ≤≃≯ ⁻¹ $ (p ∘ ≤-peel)
 
 ≤≃≤+l : (n ≤ k) ≃ (m + n ≤ m + k)

@@ -13,14 +13,15 @@ open import Data.Empty.Base
 open import Data.Dec.Base as Dec
 open import Data.Fin.Computational.Base
 open import Data.Fin.Computational.Closure
-open import Data.Fin.Computational.Instances.Discrete
+open import Data.Fin.Computational.Path
 open import Data.Fin.Computational.Instances.Ord
 open import Data.Nat.Base
 open import Data.Nat.Path
+open import Data.Reflects.Base as Reflects
+open import Data.Truncation.Propositional as ∥-∥₁
 open import Data.Vec.Inductive.Base
 open import Data.Vec.Inductive.Operations.Computational
 open import Data.Vec.Inductive.Correspondences.Unary.Any.Computational
-open import Data.Truncation.Propositional as ∥-∥₁
 
 open import Functions.Embedding
 
@@ -70,14 +71,14 @@ private
     : {ℓ′ : Level} (n : ℕ) {P : Fin n → Type ℓ′}
     → (∀ x → Manifest-bishop-finite (P x))
     → Manifest-bishop-finite Π[ P ]
-  finite-pi-fin 0 {P} fam = finite $ ≅→≃ $ ff , iso gg ri li where
+  finite-pi-fin 0 {P} fam = finite $ ≅→≃ $ iso ff gg (fun-ext ri) (fun-ext li) where
     ff : Π[ x ꞉ Fin 0 ] P x → Fin 1
     ff _ = fzero
     gg : Fin 1 → Π[ x ꞉ Fin 0 ] P x
-    gg _ f₀ = absurd $ fin-0-is-initial $ f₀
-    ri : gg is-right-inverse-of ff
+    gg _ f₀ = false! f₀
+    ri : gg section-of′ ff
     ri (mk-fin 0) = refl
-    li : gg is-left-inverse-of ff
+    li : gg retract-of′ ff
     li _ = fun-ext λ ()
 
   finite-pi-fin (suc sz) {P} fam =

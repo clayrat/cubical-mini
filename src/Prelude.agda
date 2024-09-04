@@ -4,18 +4,10 @@ module Prelude where
 
 open import Meta.Prelude public
 
-open import Meta.Effect.Alt         public
-open import Meta.Effect.Bind        public
-open import Meta.Effect.Foldable    public
-open import Meta.Effect.Idiom       public
-open import Meta.Effect.Map         public
-open import Meta.Effect.Traversable public
-
 open import Meta.Literals.FromProduct public
 open import Meta.Literals.FromNat     public
 open import Meta.Literals.FromNeg     public
 open import Meta.Literals.FromString  public
-open import Meta.Membership           public
 open import Meta.Show                 public
 open import Meta.Witness              public
 
@@ -26,6 +18,7 @@ open import Meta.Marker          public
 open import Meta.Record          public
 open import Meta.SIP             public
 
+open import Structures.Base   public
 open import Structures.n-Type public
 
 open import Logic.Decidability   public
@@ -41,12 +34,19 @@ open import Functions.Embedding  public
 open import Functions.Fibration  public
 open import Functions.Surjection public
 
+import Data.Empty
+module ⊥ = Data.Empty
+open ⊥ public
+  using ( ⊥ₜ ; ¬ₜ_ ; _≠_ )
+
+import Data.Unit
+module ⊤ = Data.Unit
+
 import Data.Truncation.Propositional
 module ∥-∥₁ = Data.Truncation.Propositional
 open ∥-∥₁ public
   using ( ∥_∥₁ ; ∣_∣₁ ; squash₁
-        ; ∃ ; ∃-syntax-und ; ∃[_]
-        ; _⊎₁_ ; _⊎̇₁_
+        ; ∃ ; ∃[_]
         ; fibre₁ ; Im )
 
 import Data.Truncation.Set

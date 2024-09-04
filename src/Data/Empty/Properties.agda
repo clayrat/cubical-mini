@@ -7,14 +7,20 @@ open import Foundations.HLevel
 
 open import Data.Unit.Base
 
-open import Data.Empty.Base public
+open import Data.Empty.Base
 
 private variable
   ℓᵃ ℓᵇ ℓᶜ : Level
   A : Type ℓᵃ
   B : Type ℓᵇ
-  C : ⊥ → Type ℓᶜ
+  C : ⊥ₜ → Type ℓᶜ
   n : HLevel
+
+¬-is-equiv : {f : ¬ A} → is-equiv f
+¬-is-equiv .equiv-proof ()
+
+¬→≃⊥ : (¬ A) → A ≃ ⊥
+¬→≃⊥ = _, ¬-is-equiv
 
 absurd-is-contr : is-contr (Π[ f ꞉ ⊥ ] C f)
 absurd-is-contr .fst ()
@@ -29,8 +35,7 @@ universal : (Π[ f ꞉ ⊥ ] C f) ≃ ⊤
 universal = _ , is-contr→is-equiv absurd-is-contr ⊤-is-contr
 
 ¬-extₑ : ¬ A → ¬ B → A ≃ B
-¬-extₑ ¬a _  .fst a = absurd (¬a a)
-¬-extₑ _  ¬b .snd .equiv-proof b = absurd (¬b b)
+¬-extₑ ¬a ¬b = ¬→≃⊥ ¬a ∙ ¬→≃⊥ ¬b ⁻¹
 
 ¬-≃ : (A → B) → (B → A) → (¬ A) ≃ (¬ B)
 ¬-≃ ab ba = prop-extₑ! (_∘ ba) (_∘ ab)

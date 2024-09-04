@@ -2,13 +2,12 @@
 module Meta.Reflection.Base where
 
 open import Foundations.Prelude
-  renaming ( _∘_ to _∘ₜ_
-           )
 
 open import Meta.Literals.FromNat     public
 open import Meta.Literals.FromString  public
 open import Meta.Literals.FromProduct public
 
+open import Meta.Effect.Base
 open import Meta.Effect.Map
 open import Meta.Effect.Idiom
 open import Meta.Effect.Bind public
@@ -23,6 +22,7 @@ open import Data.List.Base as List
 open import Data.List.Instances.Append
 open import Data.List.Instances.FromProduct
 open import Data.List.Instances.Idiom
+open import Data.List.Instances.Map
 open import Data.List.Instances.Traversable
 open import Data.List.Operations as List
 open import Data.Maybe.Base
@@ -38,6 +38,7 @@ open import Data.Reflection.Meta
 open import Data.Reflection.Name
 open import Data.Reflection.Term
 open import Data.String.Base
+open import Data.Unit.Base
 
 open import Agda.Builtin.Reflection public
   using ( TC ; bindTC ; returnTC ; catchTC ; commitTC
@@ -71,6 +72,7 @@ open import Agda.Builtin.Reflection public
            ; noConstraints to no-constraints
            ; runSpeculative to run-speculative
            ; getInstances to get-instances
+           ; solveInstanceConstraints to solve-instance-constraints
            ; blockOnMeta to block-on-meta
            ; workOnTypes to work-on-types
            )
@@ -338,7 +340,7 @@ fv-dup = go 0 where
   go* : ℕ → Args → List ℕ
 
   go nbind (var v args) =
-    if nbind <ᵇ suc v
+    if nbind <? suc v
        then (v ∸ nbind) ∷_
        else id
      $ go* nbind args
@@ -356,4 +358,4 @@ fv-dup = go 0 where
     go nbind x List.++ go* nbind xs
 
 fv     = nub-slow _==_ ∘ˢ fv-dup
-fv-ord = nub-unsafe _==_ ∘ˢ insertion-sort (λ m n → m <ᵇ suc n) ∘ˢ fv-dup
+fv-ord = nub-unsafe _==_ ∘ˢ insertion-sort (λ m n → m <? suc n) ∘ˢ fv-dup

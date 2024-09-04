@@ -67,23 +67,16 @@ module _
   Forget-structure = πᶠ Thin-structure-over
 
   Structured-hom-path : is-faithful Forget-structure
-  Structured-hom-path p = total-hom-path Thin-structure-over p prop!
+  Structured-hom-path p = total-hom-path p prop!
 
 module _ {ℓ o′ ℓ′} {S : Type ℓ → Type o′} {spec : Thin-structure ℓ′ S} where
   private
     module So = Precategory (Structured-objects spec)
     module Som = Categories.Morphism (Structured-objects spec)
 
-  instance
-    Extensional-Hom
-      : ∀ {a b ℓʳ} ⦃ sa : Extensional (⌞ a ⌟⁰ → ⌞ b ⌟⁰) ℓʳ ⦄
-      → Extensional (So.Hom a b) ℓʳ
-    Extensional-Hom ⦃ sa ⦄ = set-injective→extensional! (Structured-hom-path spec) sa
-
-
   Homomorphism-monic
     : {x y : So.Ob} (f : So.Hom x y)
-    → ({a b : ⌞ x ⌟⁰} (p : f # a ＝ f # b) → a ＝ b)
+    → ({a b : ⌞ x ⌟} (p : f # a ＝ f # b) → a ＝ b)
     → Som.is-monic f
   Homomorphism-monic f wit g h p = ext λ x → wit (ap hom p $ₚ x)
 

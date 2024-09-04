@@ -17,10 +17,11 @@ open import Data.Dec.Path
 open import Data.Empty.Base
 open import Data.Empty.Properties
 open import Data.Fin.Computational.Base
+open import Data.Fin.Computational.Path
 open import Data.Fin.Computational.Properties
 open import Data.Fin.Computational.Closure
-open import Data.Fin.Computational.Instances.Discrete
 open import Data.Nat.Path
+open import Data.Reflects.Base as Reflects
 open import Data.Truncation.Propositional as ∥-∥₁
 
 open import Functions.Embedding
@@ -93,7 +94,7 @@ instance
     go : ∥ is-discrete A ∥₁
     go = do
       e ← bf .enumeration₁
-      pure $ λ {x} {y} → ≃→is-discrete e fin-is-discrete
+      pure $ λ {x} {y} → ≃→is-discrete e (_ because auto)
   {-# OVERLAPS is-bishop-finite→is-discrete #-}
 
   is-bishop-finite→omniscient₁ : ⦃ bf : is-bishop-finite A ⦄ → Omniscient₁ A
@@ -118,14 +119,14 @@ private
     : {ℓ′ : Level} (n : ℕ) {P : Fin n → Type ℓ′}
     → (∀ x → is-bishop-finite (P x))
     → is-bishop-finite Π[ P ]
-  bishop-finite-pi-fin 0 {P} fam = finite₁ $ pure $ ≅→≃ $ ff , iso gg ri li where
+  bishop-finite-pi-fin 0 {P} fam = finite₁ $ pure $ ≅→≃ $ iso ff gg (fun-ext ri) (fun-ext li) where
     ff : Π[ x ꞉ Fin 0 ] P x → Fin 1
     ff _ = fzero
     gg : _
-    gg _ f0 = absurd (fin-0-is-initial $ f0)
-    ri : gg is-right-inverse-of ff
+    gg _ f₀ = false! f₀
+    ri : gg section-of′ ff
     ri (mk-fin 0) = refl
-    li : gg is-left-inverse-of ff
+    li : gg retract-of′ ff
     li _ = fun-ext λ ()
 
   bishop-finite-pi-fin (suc sz) {P} fam = ∥-∥₁.proj! do

@@ -9,6 +9,7 @@ open import Data.List.Base
   renaming (List to Listⁱ)
 open import Data.List.Container
 open import Data.Nat.Path
+open import Data.Reflects.Base
 open import Data.Vec.Inductive.Base public
 open import Data.Vec.Inductive.Operations
 
@@ -20,12 +21,12 @@ private variable
 
 cast : m ＝ n → Vec A m → Vec A n
 cast {0}     {0}     _ xs = xs
-cast {0}     {suc n} p = absurd $ suc≠zero $ p ⁻¹
-cast {suc m} {0}     p = absurd $ suc≠zero $ p
+cast {0}     {suc n} p = false! p
+cast {suc m} {0}     p = false! p
 cast {suc m} {suc n} p (x ∷ xs) = x ∷ cast (suc-inj p) xs
 
 vec-fun-equiv : Vec A n ≃ (Fin n → A)
-vec-fun-equiv = ≅→≃ (lookup , iso tabulate lemma₁ lemma₂) where
+vec-fun-equiv = ≅→≃ $ iso lookup tabulate (fun-ext lemma₁) (fun-ext lemma₂) where
   lemma₁ : Π[ f ꞉ (Fin n → A) ] (lookup (tabulate f) ＝ f)
   lemma₁ {0}     _ = fun-ext λ()
   lemma₁ {suc n} f = fun-ext λ where

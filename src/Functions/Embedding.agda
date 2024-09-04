@@ -4,10 +4,6 @@ module Functions.Embedding where
 open import Meta.Prelude
 open import Meta.Extensionality
 
-open import Structures.n-Type
-
-open import Data.Unit.Base
-
 open import Functions.Fibration
 
 private variable
@@ -77,15 +73,16 @@ is-embedding→monic
   : is-embedding f
   → ∀ {C : Type ℓ″} (g h : C → A) → f ∘ g ＝ f ∘ h → g ＝ h
 is-embedding→monic {f} emb g h p =
-  fun-ext λ x → ap fst (emb _ (g x , refl) (h x , p ⁻¹ $ₚ x))
+  fun-ext λ x → ap fst (emb _ (g x , refl) (h x , (p ⁻¹ $ x)))
 
-set-monic→is-embedding
-  : {A : Type ℓ} {B : Type ℓ′} {f : A → B} → is-set B
-  → (∀ {C : Set ℓ″} (g h : C →̇ A) → f ∘ g ＝ f ∘ h → g ＝ h)
-  → is-embedding f
-set-monic→is-embedding {f} B-set monic =
-  set-injective→is-embedding B-set λ {x} {y} p →
-    monic {C = el! $ Lift _ ⊤} (λ _ → x) (λ _ → y) (fun-ext (λ _ → p)) $ₚ _
+-- TODO move
+-- set-monic→is-embedding
+--   : {A : Type ℓ} {B : Type ℓ′} {f : A → B} → is-set B
+--   → (∀ {C : Set ℓ″} (g h : ⌞ C ⌟ ⇒ A) → f ∘ g ＝ f ∘ h → g ＝ h)
+--   → is-embedding f
+-- set-monic→is-embedding {f} B-set monic =
+--   set-injective→is-embedding B-set λ {x} {y} p →
+--     monic {C = ⊤} (λ _ → x) (λ _ → y) (fun-ext (λ _ → p)) $ₚ _
 
 
 preimage-is-prop→is-embedding : (∀ x → is-prop (fibre f (f x))) → is-embedding f
@@ -121,6 +118,9 @@ is-embedding→is-equiv-on-paths {f} emb = total-is-equiv→fibrewise-is-equiv {
     ((_ , refl) , λ (y , p) i → p i , λ j → p (i ∧ j))
     ((_ , refl) , ≃→is-of-hlevel 1 (Σ-ap-snd (λ _ → sym-≃)) (emb _) _))
 
+is-embedding→cancellable : is-embedding f → Cancellable f
+is-embedding→cancellable = is-embedding→is-equiv-on-paths ∙ is-equiv-on-paths→cancellable
+
 @0 is-embedding≃is-equiv-on-paths : is-embedding f ≃ is-equiv-on-paths f
 is-embedding≃is-equiv-on-paths = prop-extₑ! is-embedding→is-equiv-on-paths is-equiv-on-paths→is-embedding
 
@@ -144,11 +144,17 @@ is-equiv→is-embedding r y = is-contr→is-prop $ r .equiv-proof y
 ≃→↪ : A ≃ B → A ↪ B
 ≃→↪ = second is-equiv→is-embedding
 
-is-iso→is-embedding : is-iso f → is-embedding f
-is-iso→is-embedding = is-equiv→is-embedding ∘ is-iso→is-equiv
+is-inv→is-embedding : {f : A → B} → is-invertible f → is-embedding f
+is-inv→is-embedding = is-equiv→is-embedding ∘ is-inv→is-equiv
 
 ≅→↪ : A ≅ B → A ↪ B
-≅→↪ = second is-iso→is-embedding
+≅→↪ = ≅→≃ ∙ ≃→↪
+
+@0 lift-is-embedding : is-embedding (Lift {ℓ} ℓ′)
+lift-is-embedding = cancellable→is-embedding λ {x} {y} →
+    (=→≃ , univalence)
+  ∙ whisker-bothₑ lift≃id lift≃id
+  ∙ (=→≃ , univalence) ⁻¹
 
 instance
   Refl-Inj : Refl (_↣_ {ℓ})
@@ -210,12 +216,12 @@ opaque
   → ⦃ le : 1 ≤ʰ n ⦄
   → ⦃ hl : H-Level n A ⦄
   → is-of-hlevel n B
-↪→is-of-hlevel! n f = ↪→is-of-hlevel n f hlevel!
+↪→is-of-hlevel! n f = ↪→is-of-hlevel n f (hlevel n)
 
 set-injective→is-embedding!
   : {f : A → B} → ⦃ B-set : H-Level 2 B ⦄ → Injective f
   → is-embedding f
-set-injective→is-embedding! = set-injective→is-embedding hlevel!
+set-injective→is-embedding! = set-injective→is-embedding (hlevel 2)
 
 set-injective→extensional!
   : ⦃ B-set : H-Level 2 B ⦄
@@ -231,7 +237,7 @@ set-injective→extensional! {f} inj ext =
   → ⦃ B-pr : ∀ {x} → H-Level 1 (B x) ⦄
   → Extensional A ℓ″
   → Extensional (Σ A B) ℓ″
-Σ-prop→extensional! = Σ-prop→extensional hlevel!
+Σ-prop→extensional! = Σ-prop→extensional λ _ → hlevel 1
 
 instance
   Extensional-↪

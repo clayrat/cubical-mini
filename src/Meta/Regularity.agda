@@ -1,9 +1,7 @@
 {-# OPTIONS --safe --no-exact-split #-}
 module Meta.Regularity where
 
-open import Foundations.Base
-
-open import Meta.Effect.Alt
+open import Meta.Prelude
 open import Meta.Reflection.Base
 open import Meta.Reflection.Subst
 
@@ -21,6 +19,7 @@ open import Data.Reflection.Literal
 open import Data.Reflection.Meta
 open import Data.Reflection.Name
 open import Data.Reflection.Term
+open import Data.Unit.Base
 
 
 {-

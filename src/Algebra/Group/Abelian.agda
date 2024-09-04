@@ -7,7 +7,7 @@ open import Algebra.Group public
 open import Algebra.Monoid.Commutative public
 
 private variable
-  ℓ : Level
+  ℓ ℓ′ : Level
   A : 𝒰 ℓ
   e x y z : A
   _✦_ : A → A → A
@@ -20,7 +20,7 @@ record is-abelian-group {A : 𝒰 ℓ} (_⋆_ : A → A → A) : 𝒰 ℓ where
   field has-group : is-group _⋆_
   open is-group has-group public
 
-  field comm : Commutative _⋆_
+  field comm : Commutativityᵘ A _⋆_
 
 unquoteDecl is-abelian-group-iso = declare-record-iso is-abelian-group-iso (quote is-abelian-group)
 
@@ -52,6 +52,11 @@ abelian-group-on↪group-on .fst G .Group-on.has-group =
 abelian-group-on↪group-on .snd = set-injective→is-embedding! λ p →
   Equiv.injective (≅ₜ→≃ agroup-on-iso) $ ap Group-on._⋆_ p ,ₚ prop!
 
+instance
+  ⇒-AGroup : ⇒-notation (Σ[ X ꞉ Set ℓ ] AGroup-on ⌞ X ⌟) (Σ[ Y ꞉ Set ℓ′ ] AGroup-on ⌞ Y ⌟) (𝒰 (ℓ ⊔ ℓ′))
+  ⇒-AGroup ._⇒_ (A , X) (B , Y) = Total-hom (λ P Q → ⌞ P ⌟ → ⌞ Q ⌟)
+    (λ f P Q → Group-hom f (abelian-group-on↪group-on .fst P) (abelian-group-on↪group-on .fst Q)) {a = A} {b = B} X Y
+
 
 record make-abelian-group {ℓ} (X : 𝒰 ℓ) : 𝒰 ℓ where
   no-eta-equality
@@ -60,10 +65,10 @@ record make-abelian-group {ℓ} (X : 𝒰 ℓ) : 𝒰 ℓ where
     id  : X
     _⋆_ : X → X → X
     inverse : X → X
-    id-l  : Unital-left  id _⋆_
-    assoc : Associative _⋆_
-    comm  : Commutative _⋆_
-    inverse-l : Inverse-left id _⋆_ inverse
+    id-l  : Unitality-lᵘ X id _⋆_
+    assoc : Associativityᵘ X _⋆_
+    comm  : Commutativityᵘ X _⋆_
+    inverse-l : Invertibility-lᵘ X id inverse _⋆_
 
   private
     go : make-group X
@@ -83,10 +88,10 @@ record make-abelian-group {ℓ} (X : 𝒰 ℓ) : 𝒰 ℓ where
   to-abelian-group-on .AGroup-on._⋆_ = _⋆_
   to-abelian-group-on .AGroup-on.has-abelian-group = to-is-abelian-group
 
-  id-r : Unital-right id _⋆_
+  id-r : Unitality-rᵘ X id _⋆_
   id-r = Group-on.id-r (to-group-on go)
 
-  inverse-r : Inverse-right id _⋆_ inverse
+  inverse-r : Invertibility-rᵘ X id inverse _⋆_
   inverse-r = Group-on.inverse-r (to-group-on go)
 
 open make-abelian-group using (to-is-abelian-group ; to-abelian-group-on) public

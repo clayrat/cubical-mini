@@ -7,18 +7,13 @@ open import Algebra.Magma.Unital public
 open import Algebra.Semigroup public
 
 private variable
-  ℓ ℓ′ : Level
+  ℓ ℓ′ ℓ″ : Level
   A : 𝒰 ℓ
-  B : 𝒰 ℓ
+  B : 𝒰 ℓ′
+  C : 𝒰 ℓ″
   e x y : A
   _✦_ : A → A → A
   n : HLevel
-
-Inverse-left : (id : A) (_⋆_ : A → A → A) (inv : A → A) → 𝒰 _
-Inverse-left {A} id _⋆_ inv = Π[ x ꞉ A ] (inv x ⋆ x ＝ id)
-
-Inverse-right : (id : A) (_⋆_ : A → A → A) (inv : A → A) → 𝒰 _
-Inverse-right {A} id _⋆_ inv = Π[ x ꞉ A ] (x ⋆ inv x ＝ id)
 
 -- monoids
 
@@ -29,8 +24,8 @@ record is-monoid {A : 𝒰 ℓ} (_⋆_ : A → A → A) : 𝒰 ℓ where
 
   field
     id   : A
-    id-l : Unital-left  id _⋆_
-    id-r : Unital-right id _⋆_
+    id-l : Unitality-lᵘ A id _⋆_
+    id-r : Unitality-rᵘ A id _⋆_
 
   instance
     Reflᵘ-is-monoid : Reflᵘ A
@@ -84,8 +79,8 @@ opaque
 
 
 record Monoid-hom
-  {ℓ ℓ′} {A : 𝒰 ℓ} {B : 𝒰 ℓ′}
-  (M : Monoid-on A) (M′ : Monoid-on B) (e : A → B) : 𝒰 (ℓ ⊔ ℓ′)
+  {ℓ ℓ′} {A : 𝒰 ℓ} {B : 𝒰 ℓ′} (e : A → B)
+  (M : Monoid-on A) (M′ : Monoid-on B) : 𝒰 (ℓ ⊔ ℓ′)
   where
     no-eta-equality
     private
@@ -100,7 +95,7 @@ unquoteDecl monoid-hom-iso = declare-record-iso monoid-hom-iso (quote Monoid-hom
 
 opaque
   monoid-hom-is-prop : ∀ {M : Monoid-on A} {M′ : Monoid-on B} {f}
-                     → is-prop (Monoid-hom M M′ f)
+                     → is-prop (Monoid-hom f M M′)
   monoid-hom-is-prop {M′} = ≅→is-of-hlevel! 1 monoid-hom-iso where open Monoid-on M′
 
 instance opaque
@@ -108,8 +103,24 @@ instance opaque
   H-Level-monoid-on ⦃ s≤ʰs (s≤ʰs _) ⦄ = hlevel-basic-instance 2 monoid-on-is-set
 
   H-Level-monoid-hom : ⦃ n ≥ʰ 1 ⦄ → ∀ {M : Monoid-on A} {M′ : Monoid-on B} {f}
-                     → H-Level n (Monoid-hom M M′ f)
+                     → H-Level n (Monoid-hom f M M′)
   H-Level-monoid-hom ⦃ s≤ʰs _ ⦄ = hlevel-prop-instance monoid-hom-is-prop
+
+instance
+  ⇒-Monoid : ⇒-notation (Σ[ X ꞉ Set ℓ ] Monoid-on ⌞ X ⌟) (Σ[ Y ꞉ Set ℓ′ ] Monoid-on ⌞ Y ⌟) (𝒰 (ℓ ⊔ ℓ′))
+  ⇒-Monoid ._⇒_ (A , X) (B , Y) = Total-hom (λ P Q → ⌞ P ⌟ → ⌞ Q ⌟) Monoid-hom {a = A} {b = B} X Y
+
+  Refl-Monoid-hom : Refl {A = Monoid-on A} (Monoid-hom refl)
+  Refl-Monoid-hom .refl .Monoid-hom.pres-⋆ _ _ = refl
+  Refl-Monoid-hom .refl .Monoid-hom.pres-id = refl
+
+  Trans-Monoid-hom
+    : {f : A → B} {g : B → C}
+    → Trans (Monoid-hom f) (Monoid-hom g) (Monoid-hom (f ∙ g))
+  Trans-Monoid-hom {f} {g} ._∙_ p q .Monoid-hom.pres-⋆ a a′ =
+    ap g (p .Monoid-hom.pres-⋆ a a′) ∙ q .Monoid-hom.pres-⋆ (f a) (f a′)
+  Trans-Monoid-hom {f} {g} ._∙_ p q .Monoid-hom.pres-id =
+    ap g (p .Monoid-hom.pres-id) ∙ q .Monoid-hom.pres-id
 
 monoid-on↪semigroup-on : Monoid-on A ↪ₜ Semigroup-on A
 monoid-on↪semigroup-on .fst M .Semigroup-on._⋆_ = M .Monoid-on._⋆_
@@ -131,9 +142,9 @@ record make-monoid {ℓ} (X : 𝒰 ℓ) : 𝒰 ℓ where
     monoid-is-set : is-set X
     id  : X
     _⋆_ : X → X → X
-    id-l : Unital-left  id _⋆_
-    id-r : Unital-right id _⋆_
-    assoc : Associative _⋆_
+    id-l : Unitality-lᵘ X id _⋆_
+    id-r : Unitality-rᵘ X id _⋆_
+    assoc : Associativityᵘ X _⋆_
 
   to-is-monoid : is-monoid _⋆_
   to-is-monoid .is-monoid.has-semigroup = to-is-semigroup sg where

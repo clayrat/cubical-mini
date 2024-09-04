@@ -8,9 +8,10 @@ open import Algebra.Monoid.Category
 open import Algebra.Monoid.Commutative.Category
 
 private variable
-  ℓ ℓ′ : Level
+  ℓ ℓ′ ℓ″ : Level
   A : 𝒰 ℓ
   B : 𝒰 ℓ′
+  C : 𝒰 ℓ″
   e x y z u : A
   _✦_ _✧_ : A → A → A
   n : HLevel
@@ -86,8 +87,8 @@ opaque
 
 
 record Semiring-hom
-  {ℓ ℓ′} {A : 𝒰 ℓ} {B : 𝒰 ℓ′}
-  (M : Semiring-on A) (M′ : Semiring-on B) (e : A → B) : 𝒰 (ℓ ⊔ ℓ′)
+  {ℓ ℓ′} {A : 𝒰 ℓ} {B : 𝒰 ℓ′} (e : A → B)
+  (M : Semiring-on A) (M′ : Semiring-on B) : 𝒰 (ℓ ⊔ ℓ′)
   where
     no-eta-equality
     private
@@ -104,7 +105,7 @@ unquoteDecl semiring-hom-iso = declare-record-iso semiring-hom-iso (quote Semiri
 
 opaque
   semiring-hom-is-prop : ∀ {M : Semiring-on A} {M′ : Semiring-on B} {f}
-                       → is-prop (Semiring-hom M M′ f)
+                       → is-prop (Semiring-hom f M M′)
   semiring-hom-is-prop {M′} = ≅→is-of-hlevel! 1 semiring-hom-iso where
     open Semiring-on M′
 
@@ -113,10 +114,32 @@ instance opaque
   H-Level-semiring-on ⦃ s≤ʰs (s≤ʰs _) ⦄ = hlevel-basic-instance 2 semiring-on-is-set
 
   H-Level-semiring-hom : ⦃ n ≥ʰ 1 ⦄ → ∀ {M : Semiring-on A} {M′ : Semiring-on B} {f}
-                       → H-Level n (Semiring-hom M M′ f)
+                       → H-Level n (Semiring-hom f M M′)
   H-Level-semiring-hom ⦃ s≤ʰs _ ⦄ = hlevel-prop-instance semiring-hom-is-prop
 
-semiring-on→additive-comm-monoid-on : ∀[ Semiring-on {ℓ} →̇ CMonoid-on {ℓ} ]
+instance
+  ⇒-Semiring : ⇒-notation (Σ[ X ꞉ Set ℓ ] Semiring-on ⌞ X ⌟) (Σ[ Y ꞉ Set ℓ′ ] Semiring-on ⌞ Y ⌟) (𝒰 (ℓ ⊔ ℓ′))
+  ⇒-Semiring ._⇒_ (A , X) (B , Y) = Total-hom (λ P Q → ⌞ P ⌟ → ⌞ Q ⌟) Semiring-hom {a = A} {b = B} X Y
+
+  Refl-Semiring-hom : Refl {A = Semiring-on A} (Semiring-hom refl)
+  Refl-Semiring-hom .refl .Semiring-hom.pres-+ _ _ = refl
+  Refl-Semiring-hom .refl .Semiring-hom.pres-· _ _ = refl
+  Refl-Semiring-hom .refl .Semiring-hom.pres-0 = refl
+  Refl-Semiring-hom .refl .Semiring-hom.pres-1 = refl
+
+  Trans-Semiring-hom
+    : {f : A → B} {g : B → C}
+    → Trans (Semiring-hom f) (Semiring-hom g) (Semiring-hom (f ∙ g))
+  Trans-Semiring-hom {f} {g} ._∙_ p q .Semiring-hom.pres-+ a a′ =
+    ap g (p .Semiring-hom.pres-+ a a′) ∙ q .Semiring-hom.pres-+ (f a) (f a′)
+  Trans-Semiring-hom {f} {g} ._∙_ p q .Semiring-hom.pres-· a a′ =
+    ap g (p .Semiring-hom.pres-· a a′) ∙ q .Semiring-hom.pres-· (f a) (f a′)
+  Trans-Semiring-hom {f} {g} ._∙_ p q .Semiring-hom.pres-0 =
+    ap g (p .Semiring-hom.pres-0) ∙ q .Semiring-hom.pres-0
+  Trans-Semiring-hom {f} {g} ._∙_ p q .Semiring-hom.pres-1 =
+    ap g (p .Semiring-hom.pres-1) ∙ q .Semiring-hom.pres-1
+
+semiring-on→additive-comm-monoid-on : ∀[ Semiring-on {ℓ} ⇒ CMonoid-on ]
 semiring-on→additive-comm-monoid-on S = to-comm-monoid-on go where
   open Semiring-on S
   go : make-comm-monoid _
@@ -128,7 +151,7 @@ semiring-on→additive-comm-monoid-on S = to-comm-monoid-on go where
   go .make-comm-monoid.assoc = +-assoc
   go .make-comm-monoid.comm = +-comm
 
-semiring-on→multiplicative-monoid-on : ∀[ Semiring-on {ℓ} →̇ Monoid-on {ℓ} ]
+semiring-on→multiplicative-monoid-on : ∀[ Semiring-on {ℓ} ⇒ Monoid-on ]
 semiring-on→multiplicative-monoid-on S = to-monoid-on go where
   open Semiring-on S
   go : make-monoid _
@@ -146,13 +169,13 @@ record make-semiring {ℓ} (X : 𝒰 ℓ) : 𝒰 ℓ where
     semiring-is-set : is-set X
     0a 1a : X
     _+_ _·_ : X → X → X
-    +-id-l  : Unital-left  0a _+_
-    +-id-r  : Unital-right 0a _+_
-    +-assoc : Associative _+_
-    +-comm  : Commutative _+_
-    ·-id-l  : Unital-left  1a _·_
-    ·-id-r  : Unital-right 1a _·_
-    ·-assoc : Associative _·_
+    +-id-l  : Unitality-lᵘ X 0a _+_
+    +-id-r  : Unitality-rᵘ X 0a _+_
+    +-assoc : Associativityᵘ X _+_
+    +-comm  : Commutativityᵘ X _+_
+    ·-id-l  : Unitality-lᵘ X 1a _·_
+    ·-id-r  : Unitality-rᵘ X 1a _·_
+    ·-assoc : Associativityᵘ X _·_
     ·-distrib-+-l : Distrib-left  _·_ _+_
     ·-distrib-+-r : Distrib-right _·_ _+_
 

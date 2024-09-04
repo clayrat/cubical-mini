@@ -4,7 +4,6 @@ module Combinatorics.Finiteness.Listed.Strong where
 open import Meta.Prelude
 
 open import Meta.Marker
-open import Meta.Membership
 open import Meta.Record
 
 open import Logic.Discreteness
@@ -17,7 +16,7 @@ open import Data.Dec.Base
 open import Data.Empty.Base as ⊥
 open import Data.Dec.Properties
 open import Data.Fin.Computational.Base as Fin
-open import Data.Fin.Computational.Instances.Discrete
+open import Data.Fin.Computational.Path as Fin
 open import Data.List.Base
 open import Data.List.Operations
 open import Data.List.Path
@@ -58,7 +57,7 @@ listed-embedding lis .snd (c , c∈l , u) (a , p) (b , q)
   lemma =
     ⌜ ap fst (p ∙ q ⁻¹) ⌝ ∙ ap fst q       ~⟨ ap! (ap-comp-∙ fst p _) ⟩
     (ap fst p ∙ ap fst (q ⁻¹)) ∙ ap fst q  ~⟨ ∙-cancel-r _ _ ⟩
-    ap fst p                               ~⟨ ∙-id-r _ ⟨
+    ap fst p                               ~⟨ ∙-id-i _ ⟨
     ap fst p ∙ refl                        ∎
 
 listed→is-discrete : Listed A → is-discrete A

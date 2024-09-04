@@ -6,7 +6,7 @@ open import Categories.Prelude hiding (_+_)
 open import Algebra.Semiring public
 
 private variable
-  ℓ     : Level
+  ℓ ℓ′  : Level
   A     : 𝒰 ℓ
   e x y z u : A
   _✦_ _✧_ : A → A → A
@@ -69,6 +69,11 @@ instance opaque
   H-Level-rig-on : ⦃ n ≥ʰ 2 ⦄ → H-Level n (Rig-on A)
   H-Level-rig-on ⦃ s≤ʰs (s≤ʰs _) ⦄ = hlevel-basic-instance 2 $ ↪→is-of-hlevel! 2 rig-on↪semiring-on
 
+instance
+  ⇒-Rig : ⇒-notation (Σ[ X ꞉ Set ℓ ] Rig-on ⌞ X ⌟) (Σ[ Y ꞉ Set ℓ′ ] Rig-on ⌞ Y ⌟) (𝒰 (ℓ ⊔ ℓ′))
+  ⇒-Rig ._⇒_ (A , X) (B , Y) = Total-hom (λ P Q → ⌞ P ⌟ → ⌞ Q ⌟)
+    (λ f P Q → Semiring-hom f (rig-on↪semiring-on .fst P) (rig-on↪semiring-on .fst Q)) {a = A} {b = B} X Y
+
 
 record make-rig {ℓ} (X : 𝒰 ℓ) : 𝒰 ℓ where
   no-eta-equality
@@ -76,13 +81,13 @@ record make-rig {ℓ} (X : 𝒰 ℓ) : 𝒰 ℓ where
     rig-is-set : is-set X
     0a 1a : X
     _+_ _·_ : X → X → X
-    +-id-l  : Unital-left  0a _+_
-    +-id-r  : Unital-right 0a _+_
-    +-assoc : Associative _+_
-    +-comm  : Commutative _+_
-    ·-id-l  : Unital-left  1a _·_
-    ·-id-r  : Unital-right 1a _·_
-    ·-assoc : Associative _·_
+    +-id-l  : Unitality-lᵘ X  0a _+_
+    +-id-r  : Unitality-rᵘ X 0a _+_
+    +-assoc : Associativityᵘ X _+_
+    +-comm  : Commutativityᵘ X _+_
+    ·-id-l  : Unitality-lᵘ X  1a _·_
+    ·-id-r  : Unitality-rᵘ X 1a _·_
+    ·-assoc : Associativityᵘ X _·_
     ·-distrib-+-l : Distrib-left  _·_ _+_
     ·-distrib-+-r : Distrib-right _·_ _+_
     ·-absorb-l : Absorb-left  0a _·_

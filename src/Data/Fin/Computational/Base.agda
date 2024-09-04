@@ -4,12 +4,13 @@ module Data.Fin.Computational.Base where
 open import Foundations.Prelude
 
 open import Data.Bool.Base
-  using (is-true)
+  using (Bool; false; true)
 import Data.Empty.Base as ⊥
 open import Data.Fin.Interface
 open import Data.Nat.Base
   using (ℕ; zero; suc ; pred)
 open import Data.Nat.Order.Inductive.Base
+open import Data.Reflects.Base
 open import Data.Sum.Base
 
 private variable
@@ -20,7 +21,7 @@ record Fin (@0 n : ℕ) : Type where
   constructor mk-fin
   field
     index     : ℕ
-    { bound } : Erased (is-true (index <ᵇ n))
+    { bound } : Erased ⌞ index <? n ⌟
 
 open Fin
 
@@ -77,7 +78,7 @@ module _ where
     renaming (Fin to Finᵈ; fzero to fzeroᵈ; fsuc to fsucᵈ)
 
   default≃computational : ∀{n} → Finᵈ n ≃ Fin n
-  default≃computational = ≅→≃ $ to , iso from ri li where
+  default≃computational = ≅→≃ $ iso to from (fun-ext ri) (fun-ext li) where
     to : ∀{n} → Finᵈ n → Fin n
     to {suc _} fzeroᵈ    = fzero
     to {suc _} (fsucᵈ k) = fsuc (to k)
@@ -95,3 +96,10 @@ module _ where
     li {suc _} (fsucᵈ k) = ap fsucᵈ (li k)
 
   module default≃computational {n} = Equiv (default≃computational {n})
+
+instance
+  Reflects-Fin-0 : Reflects (Fin 0) false
+  Reflects-Fin-0 = ofⁿ λ ()
+
+  Reflects-Fin-1 : Reflects (Fin 1) true
+  Reflects-Fin-1 = ofʸ fzero

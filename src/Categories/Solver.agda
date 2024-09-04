@@ -3,6 +3,7 @@ module Categories.Solver where
 
 open import Foundations.Base hiding (id; _∘_)
 
+open import Meta.Effect.Idiom
 open import Meta.Marker
 open import Meta.Reflection.Base
 open import Meta.Reflection.Solver
@@ -14,6 +15,7 @@ open import Data.Reflection.Argument
 open import Data.Reflection.Literal
 open import Data.Reflection.Name
 open import Data.Reflection.Term
+open import Data.Unit.Base
 
 private variable
   o h : Level

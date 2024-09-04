@@ -2,13 +2,10 @@
 module Meta.Deriving.HLevel where
 
 open import Meta.Prelude
+open import Meta.Record
+open import Meta.Reflection
 
 open import Structures.n-Type
-
-open import Meta.Record
-open import Meta.Reflection.Base
-open import Meta.Reflection.Neutral
-open import Meta.Reflection.Signature
 
 open import Data.Nat.Order.Inductive
 open import Data.List.Base
@@ -20,6 +17,7 @@ open import Data.Reflection.Argument
 open import Data.Reflection.Literal
 open import Data.Reflection.Name
 open import Data.Reflection.Term
+open import Data.Unit.Base
 
 private variable
   ℓ ℓ′ : Level
@@ -29,7 +27,7 @@ private variable
 private
   record-hlevel-instance
     : {A : Type ℓ} {B : Type ℓ′} (n : ℕ) ⦃ A-hl : H-Level n A ⦄
-    → Iso B A
+    → B ≅ A
     → ∀ {k} ⦃ p : n ≤ k ⦄
     → H-Level k B
   record-hlevel-instance n im ⦃ p ⦄ = hlevel-instance $

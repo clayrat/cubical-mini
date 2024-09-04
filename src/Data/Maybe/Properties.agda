@@ -5,38 +5,41 @@ open import Meta.Prelude
 
 open import Logic.Decidability
 
+open import Data.Bool.Base
 open import Data.Dec.Base
 open import Data.Maybe.Base public
 open import Data.Maybe.Path
 open import Data.Sum.Base
+open import Data.Sum.Properties
 open import Data.Unit.Base
 
 private variable
-  ℓ : Level
+  ℓ ℓ′ : Level
   A : Type ℓ
   x : Maybe A
 
 maybe-as-sum : Maybe A ≃ (⊤ ⊎ A)
-maybe-as-sum = ≅→≃ 𝔯
-  where
-  𝔯 : Iso _ _
-  𝔯 .fst (just x) = inr x
-  𝔯 .fst nothing  = inl tt
-  𝔯 .snd .is-iso.inv (inl _) = nothing
-  𝔯 .snd .is-iso.inv (inr x) = just x
-  𝔯 .snd .is-iso.rinv (inl _) = refl
-  𝔯 .snd .is-iso.rinv (inr _) = refl
-  𝔯 .snd .is-iso.linv (just _) = refl
-  𝔯 .snd .is-iso.linv nothing  = refl
+maybe-as-sum = ≅→≃ i where
+  open Iso
+  i : _ ≅ _
+  i .to (just x) = inr x
+  i .to nothing = inl tt
+  i .from (inl _) = nothing
+  i .from (inr x) = just x
+  i .inverses .Inverses.inv-o _ (inl _) = inl tt
+  i .inverses .Inverses.inv-o _ (inr x) = inr x
+  i .inverses .Inverses.inv-i j (just x) = just x
+  i .inverses .Inverses.inv-i j nothing = nothing
+
+fibre-just : (m : Maybe A) ⦃ _ : So (is-just? m) ⦄ → fibre just m
+fibre-just (just x) = x , refl
+
+maybe-is-of-size : is-of-size ℓ′ A → is-of-size ℓ′ (Maybe A)
+maybe-is-of-size {ℓ′} {A} sz =
+  ≃→is-of-size (maybe-as-sum ⁻¹) (⊎-is-of-size (size 0ℓ) sz)
 
 instance
-  is-nothing-decision : Decidable (is-nothing x)
-  is-nothing-decision {x = nothing} = yes tt
-  is-nothing-decision {x = just _}  = no  refl
-
-  is-just-decision : Decidable (is-just x)
-  is-just-decision {x = nothing} = no  refl
-  is-just-decision {x = just _}  = yes tt
-
-is-just→fibre : (m : Maybe A) → is-just m → fibre just m
-is-just→fibre (just x) tt = x , refl
+  Size-Maybe : {A : 𝒰 ℓ}
+               ⦃ sa : Size ℓ′ A ⦄
+             → Size ℓ′ (Maybe A)
+  Size-Maybe {ℓ′} .Size.has-of-size = maybe-is-of-size (size ℓ′)

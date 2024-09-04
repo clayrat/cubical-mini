@@ -22,7 +22,7 @@ data Vec (A : Type ℓ) : @0 ℕ → Type ℓ where
   _∷_ : A → Vec A n → Vec A (suc n)
 
 elim
-  : (P : ∀ᴱ[ n ꞉ ℕ ] (Vec A n → Type ℓ′))
+  : {A : Type ℓ} (P : ∀ᴱ[ n ꞉ ℕ ] (Vec A n → Type ℓ′))
   → P []
   → (∀ᴱ[ n ꞉ ℕ ] ∀[ x ꞉ A ] ∀[ xs ꞉ Vec A n ] (P xs → P (x ∷ xs)))
   → ∀ᴱ[ n ꞉ ℕ ] Π[ xs ꞉ Vec A n ] P xs
@@ -60,7 +60,7 @@ module _ where
     renaming (Vec to Vecᵈ)
 
   default≃inductive : ∀ {n} → Vecᵈ A n ≃ Vec A n
-  default≃inductive {A} = ≅→≃ $ to , iso from ri li where
+  default≃inductive {A} = ≅→≃ $ iso to from (fun-ext ri) (fun-ext li) where
     to : ∀{n} → Vecᵈ A n → Vec A n
     to {n = 0}     _        = []
     to {n = suc _} (x , xs) = x ∷ to xs

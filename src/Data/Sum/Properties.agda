@@ -3,45 +3,48 @@ module Data.Sum.Properties where
 
 open import Meta.Prelude
 
-open import Data.Empty.Base
+open import Functions.Embedding
 
-open import Data.Sum.Base public
+open import Data.Empty.Base
+open import Data.Empty.Properties
+  using (¬→≃⊥)
+open import Data.Reflects.Base as Reflects
+open import Data.Sum.Base as ⊎
+open import Data.Sum.Path
 
 private variable
-  a b c d : Level
-  A : Type a
-  B : Type b
-  C : Type c
-  D : Type d
+  ℓ ℓ′ ℓᵃ ℓᵇ ℓᶜ ℓᵈ : Level
+  A : Type ℓᵃ
+  B : Type ℓᵇ
+  C : Type ℓᶜ
+  D : Type ℓᵈ
 
-universal : {A : Type a} {B : Type b}
-            {C : A ⊎ B → Type c}
+universal : {A : Type ℓᵃ} {B : Type ℓᵇ}
+            {C : A ⊎ B → Type ℓᶜ}
           → (Π[ x ꞉ A ⊎ B ] C x)
           ≃ ( (Π[ x ꞉ A ] C (inl x))
             × (Π[ y ꞉ B ] C (inr y))
             )
 universal = ≅→≃ the-iso where
-  the-iso : Iso _ _
-  the-iso .fst f = (λ x → f (inl x)) , (λ x → f (inr x))
-  the-iso .snd .is-iso.inv (f , g) (inl x) = f x
-  the-iso .snd .is-iso.inv (f , g) (inr x) = g x
-  the-iso .snd .is-iso.rinv x = refl
-  the-iso .snd .is-iso.linv f i (inl x) = f (inl x)
-  the-iso .snd .is-iso.linv f i (inr x) = f (inr x)
+  open Iso
+  the-iso : _ ≅ _
+  the-iso .to = < _∘ inl , _∘ inr >
+  the-iso .from (f , g) (inl x) = f x
+  the-iso .from (f , g) (inr x) = g x
+  the-iso .inverses .Inverses.inv-o = refl
+  the-iso .inverses .Inverses.inv-i _ f (inl x) = f (inl x)
+  the-iso .inverses .Inverses.inv-i _ f (inr x) = f (inr x)
 
 ⊎-ap : A ≃ B → C ≃ D → (A ⊎ C) ≃ (B ⊎ D)
-⊎-ap (f , f-eqv) (g , g-eqv) = ≅→≃ cong′ where
-  f-iso = is-equiv→is-iso f-eqv
-  g-iso = is-equiv→is-iso g-eqv
-
-  cong′ : Iso _ _
-  cong′ .fst = dmap f g
-  cong′ .snd .is-iso.inv  (inl x) = inl (f-iso .is-iso.inv x)
-  cong′ .snd .is-iso.inv  (inr x) = inr (g-iso .is-iso.inv x)
-  cong′ .snd .is-iso.rinv (inl x) = ap inl (f-iso .is-iso.rinv x)
-  cong′ .snd .is-iso.rinv (inr x) = ap inr (g-iso .is-iso.rinv x)
-  cong′ .snd .is-iso.linv (inl x) = ap inl (f-iso .is-iso.linv x)
-  cong′ .snd .is-iso.linv (inr x) = ap inr (g-iso .is-iso.linv x)
+⊎-ap f g = ≅→≃ $ iso to from (fun-ext ri) (fun-ext li) where
+  to = ⊎.dmap (f #_) (g #_)
+  from = [ inl ∘ (f ⁻¹ $_) , inr ∘ (g ⁻¹ $_) ]ᵤ
+  ri : _
+  ri (inl x) = inl # Equiv.ε f x
+  ri (inr x) = inr # Equiv.ε g x
+  li : _
+  li (inl x) = inl # Equiv.η f x
+  li (inr x) = inr # Equiv.η g x
 
 ⊎-ap-l : A ≃ B → (A ⊎ C) ≃ (B ⊎ C)
 ⊎-ap-l f = ⊎-ap f refl
@@ -50,37 +53,25 @@ universal = ≅→≃ the-iso where
 ⊎-ap-r f = ⊎-ap refl f
 
 ⊎-comm : (A ⊎ B) ≃ (B ⊎ A)
-⊎-comm = ≅→≃ i where
-  i : Iso _ _
-  i .fst (inl x) = inr x
-  i .fst (inr x) = inl x
-
-  i .snd .is-iso.inv (inl x) = inr x
-  i .snd .is-iso.inv (inr x) = inl x
-
-  i .snd .is-iso.rinv (inl x) = refl
-  i .snd .is-iso.rinv (inr x) = refl
-  i .snd .is-iso.linv (inl x) = refl
-  i .snd .is-iso.linv (inr x) = refl
+⊎-comm = ≅→≃ $ iso go go (fun-ext i) (fun-ext i) where
+  go : {A : Type ℓᵃ} {B : Type ℓᵇ} → (A ⊎ B) → (B ⊎ A)
+  go = [ inr , inl ]ᵤ
+  i : {A : Type ℓᵃ} {B : Type ℓᵇ} (x : A ⊎ B) → go (go x) ＝ x
+  i (inl _) = refl
+  i (inr _) = refl
 
 ⊎-assoc : ((A ⊎ B) ⊎ C) ≃ (A ⊎ (B ⊎ C))
-⊎-assoc = ≅→≃ i where
-  i : Iso _ _
-  i .fst (inl (inl x)) = inl x
-  i .fst (inl (inr x)) = inr (inl x)
-  i .fst (inr x)       = inr (inr x)
-
-  i .snd .is-iso.inv (inl x)       = inl (inl x)
-  i .snd .is-iso.inv (inr (inl x)) = inl (inr x)
-  i .snd .is-iso.inv (inr (inr x)) = inr x
-
-  i .snd .is-iso.rinv (inl x) = refl
-  i .snd .is-iso.rinv (inr (inl x)) = refl
-  i .snd .is-iso.rinv (inr (inr x)) = refl
-
-  i .snd .is-iso.linv (inl (inl x)) = refl
-  i .snd .is-iso.linv (inl (inr x)) = refl
-  i .snd .is-iso.linv (inr x) = refl
+⊎-assoc = ≅→≃ $ iso to from (fun-ext ri) (fun-ext li) where
+  to = [ [ inl , inr ∘ inl ]ᵤ , inr ∘ inr ]ᵤ
+  from = [ inl ∘ inl , [ inl ∘ inr , inr ]ᵤ ]ᵤ
+  ri : _
+  ri (inl _) = refl
+  ri (inr (inl _)) = refl
+  ri (inr (inr _)) = refl
+  li : _
+  li (inl (inl _)) = refl
+  li (inl (inr _)) = refl
+  li (inr _) = refl
 
 ⊎-zero-r : (A ⊎ ⊥) ≃ A
 ⊎-zero-r .fst (inl x) = x
@@ -94,12 +85,32 @@ universal = ≅→≃ the-iso where
 
 ⊎-×-distribute : ((A ⊎ B) × C) ≃ ((A × C) ⊎ (B × C))
 ⊎-×-distribute = ≅→≃ i where
-  i : Iso _ _
-  i .fst (inl x , y) = inl (x , y)
-  i .fst (inr x , y) = inr (x , y)
-  i .snd .is-iso.inv (inl (x , y)) = inl x , y
-  i .snd .is-iso.inv (inr (x , y)) = inr x , y
-  i .snd .is-iso.rinv (inl x) = refl
-  i .snd .is-iso.rinv (inr x) = refl
-  i .snd .is-iso.linv (inl x , _) = refl
-  i .snd .is-iso.linv (inr x , _) = refl
+  open Iso
+  i : _ ≅ _
+  i .to (inl x , y) = inl (x , y)
+  i .to (inr x , y) = inr (x , y)
+  i .from (inl (x , y)) = inl x , y
+  i .from (inr (x , y)) = inr x , y
+  i .inverses .Inverses.inv-o _ (inl x) = inl x
+  i .inverses .Inverses.inv-o _ (inr x) = inr x
+  i .inverses .Inverses.inv-i i (inl x , w) = inl x , w
+  i .inverses .Inverses.inv-i i (inr x , w) = inr x , w
+
+⊎↪ : A ↪ C → B ↪ D → (A ⊎ B) ↪ (C ⊎ D)
+⊎↪ f g .fst = [ inl ∘ f #_ , inr ∘ g #_ ]ᵤ
+⊎↪ f g .snd = cancellable→is-embedding λ where
+  {inl a} {inl a′} → inl-cancellable ∙ is-embedding→cancellable (f .snd) ∙ inl-cancellable ⁻¹
+  {inl a} {inr b}  → ¬→≃⊥ false! ∙ ¬→≃⊥ false! ⁻¹
+  {inr b} {inl a}  → ¬→≃⊥ false! ∙ ¬→≃⊥ false! ⁻¹
+  {inr b} {inr b′} → inr-cancellable ∙ is-embedding→cancellable (g .snd) ∙ inr-cancellable ⁻¹
+
+⊎-is-of-size : is-of-size ℓᶜ A → is-of-size ℓᵈ B
+             → is-of-size (ℓᶜ ⊔ ℓᵈ) (A ⊎ B)
+⊎-is-of-size {ℓᶜ} {ℓᵈ} (A , as) (B , bs) = A ⊎ B , ⊎-ap as bs
+
+instance
+  Size-⊎ : {A : 𝒰 ℓᵃ} {B : 𝒰 ℓᵇ}
+           ⦃ sa : Size ℓᶜ A ⦄
+           ⦃ sb : Size ℓᵈ B ⦄
+         → Size (ℓᶜ ⊔ ℓᵈ) (A ⊎ B)
+  Size-⊎ {ℓᶜ} {ℓᵈ} .Size.has-of-size = ⊎-is-of-size (size ℓᶜ) (size ℓᵈ)

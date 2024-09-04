@@ -13,16 +13,18 @@ private variable
   A : Type ℓ
   P : A → Type ℓ′
   Q : A → Type ℓ″
-  f : Π[ x ꞉ A ] (P x → Q x)
 
-total : Π[ x ꞉ A ] (P x → Q x)
+total : {A : Type ℓ} {P : A → Type ℓ′} {Q : A → Type ℓ″}
+      → Π[ x ꞉ A ] (P x → Q x)
       → Σ A P → Σ A Q
 total f (x , y) = x , f x y
 
-total-fibres-equiv : {x : A} {v : Q x}
+total-fibres-equiv : {A : Type ℓ} {P : A → Type ℓ′} {Q : A → Type ℓ″}
+                     {x : A} {v : Q x}
+                     {f : Π[ x ꞉ A ] (P x → Q x)}
                    → fibre (f x)          v
                    ≃ fibre (total f) (x , v)
-total-fibres-equiv {A} {Q} {f} = ≅→≃ $ to , iso from ri li where
+total-fibres-equiv {A} {Q} {f} = ≅→≃ $ iso to from (fun-ext ri) (fun-ext li) where
   to : {x : A} {v : Q x} → fibre (f x) v → fibre (total f) (x , v)
   to (v′ , p) = (_ , v′) , λ i → _ , p i
 
@@ -32,32 +34,34 @@ total-fibres-equiv {A} {Q} {f} = ≅→≃ $ to , iso from ri li where
   opaque
     unfolding singletonₚ-is-prop
     ri : {x : A} {v : Q x}
-       → from {x = x} {v = v} is-right-inverse-of to
+       → from {x = x} {v = v} section-of′ to
     ri ((x , v) , p) =
       Jₚ (λ { _ p → to (from ((x , v) , p)) ＝ ((x , v) , p) })
          (ap to (Jₚ-refl {A = Σ A Q} (λ { (x , v) _ → fibre (f x) v } ) (v , refl)))
          p
 
     li : {x : A} {v : Q x}
-       → from {x = x} {v = v} is-left-inverse-of to
+       → from {x = x} {v = v} retract-of′ to
     li (v , p) =
       Jₚ (λ { _ p → from (to (v , p)) ＝ (v , p) })
          (Jₚ-refl {A = Σ A Q} (λ { (x , v) _ → fibre (f x) v } ) (v , refl))
          p
 
-total-is-equiv→fibrewise-is-equiv : is-equiv (total f)
+total-is-equiv→fibrewise-is-equiv : {f : Π[ x ꞉ A ] (P x → Q x)}
+                                  → is-equiv (total f)
                                   → ∀[ x ꞉ A ] is-equiv (f x)
 total-is-equiv→fibrewise-is-equiv eqv {x} .equiv-proof y = is-equiv→is-of-hlevel 0
-  from (inverse .snd) (eqv .equiv-proof (x , y))
-    where open Equiv total-fibres-equiv
+  (Equiv.from total-fibres-equiv) (Equiv.inverse total-fibres-equiv .snd) (eqv .equiv-proof (x , y))
 
-fibrewise-is-equiv→total-is-equiv : ∀[ x ꞉ A ] is-equiv (f x)
+fibrewise-is-equiv→total-is-equiv : {f : Π[ x ꞉ A ] (P x → Q x)}
+                                  → ∀[ x ꞉ A ] is-equiv (f x)
                                   → is-equiv (total f)
 fibrewise-is-equiv→total-is-equiv always-eqv .equiv-proof y = is-equiv→is-of-hlevel 0
   (total-fibres-equiv .fst) (total-fibres-equiv .snd)
   (always-eqv .equiv-proof (y .snd))
 
-fibrewise-is-equiv≃total-is-equiv : ∀[ x ꞉ A ] is-equiv (f x)
+fibrewise-is-equiv≃total-is-equiv : {f : Π[ x ꞉ A ] (P x → Q x)}
+                                  → ∀[ x ꞉ A ] is-equiv (f x)
                                   ≃ is-equiv (total f)
 fibrewise-is-equiv≃total-is-equiv = prop-extₑ!
   fibrewise-is-equiv→total-is-equiv

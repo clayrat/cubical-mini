@@ -2,11 +2,8 @@
 module Meta.Deriving.Show where
 
 open import Meta.Prelude
-
 open import Meta.Effect.Traversable
-open import Meta.Reflection.Base
-open import Meta.Reflection.Neutral
-open import Meta.Reflection.Signature
+open import Meta.Reflection
 open import Meta.Show public
 
 open import Data.Bool.Base
@@ -28,6 +25,7 @@ open import Data.Reflection.Name
 open import Data.Reflection.Term
 open import Data.String.Base
 open import Data.String.Instances.Append
+open import Data.Unit.Base
 
 
 private
@@ -96,7 +94,7 @@ private
   -- rather than `(1 , (2 , 3))`, since the second argument of `_,_`
   -- will be rendered with the same precedence as the overall
   -- expression.
-  assoc-name-parts : Associativity → Precedence → Precedence → List Name-part → List Name-part
+  assoc-name-parts : Associativity′ → Precedence → Precedence → List Name-part → List Name-part
   assoc-name-parts left-assoc thisp argp (hole _ ∷ p ∷ hole _ ∷ []) =
     hole thisp ∷ p ∷ hole argp ∷ []
   assoc-name-parts right-assoc thisp argp (hole _ ∷ p ∷ hole _ ∷ []) =

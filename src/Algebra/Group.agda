@@ -6,9 +6,10 @@ open import Categories.Prelude
 open import Algebra.Monoid public
 
 private variable
-  ℓ ℓ′ : Level
+  ℓ ℓ′ ℓ″ : Level
   A : 𝒰 ℓ
-  B : 𝒰 ℓ
+  B : 𝒰 ℓ′
+  C : 𝒰 ℓ″
   e x y : A
   _✦_ : A → A → A
   n : HLevel
@@ -23,12 +24,12 @@ record is-group {A : 𝒰 ℓ} (_⋆_ : A → A → A) : 𝒰 ℓ where
   open is-monoid has-monoid public
 
   field
-    inverse-l : Inverse-left  id _⋆_ inverse
-    inverse-r : Inverse-right id _⋆_ inverse
+    inverse-l : Invertibility-lᵘ A id inverse _⋆_
+    inverse-r : Invertibility-rᵘ A id inverse _⋆_
 
   instance
-    Symmᵘ-is-group : Symmᵘ A
-    Symmᵘ-is-group .inv = inverse
+    Symᵘ-is-group : Symᵘ A
+    Symᵘ-is-group .minv = inverse
 
 unquoteDecl is-group-iso = declare-record-iso is-group-iso (quote is-group)
 
@@ -69,8 +70,8 @@ opaque
 
 
 record Group-hom
-  {ℓ ℓ′} {A : 𝒰 ℓ} {B : 𝒰 ℓ′}
-  (M : Group-on A) (M′ : Group-on B) (e : A → B) : 𝒰 (ℓ ⊔ ℓ′)
+  {ℓ ℓ′} {A : 𝒰 ℓ} {B : 𝒰 ℓ′} (e : A → B)
+  (M : Group-on A) (M′ : Group-on B) : 𝒰 (ℓ ⊔ ℓ′)
   where
     no-eta-equality
     private
@@ -79,14 +80,14 @@ record Group-hom
 
     field pres-⋆  : (x y : A) → e (x ∙ y) ＝ e x ∙ e y
 
-    pres-id : e refl ＝ refl
+    pres-id : e A.id ＝ B.id
     pres-id =
-      e refl                           ~⟨ B.id-r _ ⟨
-      e refl ∙ ⌜ refl ⌝                ~⟨ ap¡ (B.inverse-r _) ⟨
-      e refl ∙ (e refl ∙ e refl ⁻¹)    ~⟨ B.assoc _ _ _ ⟩
-      ⌜ e refl ∙ e refl ⌝ ∙ e refl ⁻¹  ~⟨ ap! (sym (pres-⋆ _ _) ∙ ap e (A.id-l _)) ⟩
-      e refl ∙ e refl ⁻¹               ~⟨ B.inverse-r _ ⟩
-      refl                             ∎
+      e A.id                           ~⟨ B.id-r _ ⟨
+      e A.id ∙ ⌜ B.id ⌝                ~⟨ ap¡ (B.inverse-r (e A.id)) ⟨
+      e A.id ∙ (e A.id ∙ e A.id ⁻¹)    ~⟨ B.assoc _ _ _ ⟩
+      ⌜ e A.id ∙ e A.id ⌝ ∙ e A.id ⁻¹  ~⟨ ap! (pres-⋆ A.id A.id ⁻¹ ∙ ap e (A.id-l _)) ⟩
+      e A.id ∙ e A.id ⁻¹               ~⟨ B.inverse-r _ ⟩
+      B.id                             ∎
 
     pres-inv : (x : A) → e (x ⁻¹) ＝ (e x) ⁻¹
     pres-inv x = monoid-inverse-unique {IM = B.has-monoid} (e x) _ _
@@ -97,7 +98,7 @@ unquoteDecl group-hom-iso = declare-record-iso group-hom-iso (quote Group-hom)
 
 opaque
   group-hom-is-prop : ∀ {M : Group-on A} {M′ : Group-on B} {f}
-                    → is-prop (Group-hom M M′ f)
+                    → is-prop (Group-hom f M M′)
   group-hom-is-prop {M′} = ≅→is-of-hlevel! 1 group-hom-iso where
     open Group-on M′
 
@@ -106,8 +107,21 @@ instance opaque
   H-Level-group-on ⦃ s≤ʰs (s≤ʰs _) ⦄ = hlevel-basic-instance 2 group-on-is-set
 
   H-Level-group-hom : ⦃ n ≥ʰ 1 ⦄ → ∀ {M : Group-on A} {M′ : Group-on B} {f}
-                    → H-Level n (Group-hom M M′ f)
+                    → H-Level n (Group-hom f M M′)
   H-Level-group-hom ⦃ s≤ʰs _ ⦄ = hlevel-prop-instance group-hom-is-prop
+
+instance
+  ⇒-Group : ⇒-notation (Σ[ X ꞉ Set ℓ ] Group-on ⌞ X ⌟) (Σ[ Y ꞉ Set ℓ′ ] Group-on ⌞ Y ⌟) (𝒰 (ℓ ⊔ ℓ′))
+  ⇒-Group ._⇒_ (A , X) (B , Y) = Total-hom (λ P Q → ⌞ P ⌟ → ⌞ Q ⌟) Group-hom {a = A} {b = B} X Y
+
+  Refl-Group-hom : Refl {A = Group-on A} (Group-hom refl)
+  Refl-Group-hom .refl .Group-hom.pres-⋆ _ _ = refl
+
+  Trans-Group-hom
+    : {f : A → B} {g : B → C}
+    → Trans (Group-hom f) (Group-hom g) (Group-hom (f ∙ g))
+  Trans-Group-hom {f} {g} ._∙_ p q .Group-hom.pres-⋆ a a′ =
+    ap g (p .Group-hom.pres-⋆ a a′) ∙ q .Group-hom.pres-⋆ (f a) (f a′)
 
 group-on↪monoid-on : Group-on A ↪ₜ Monoid-on A
 group-on↪monoid-on .fst G .Monoid-on._⋆_ = G .Group-on._⋆_
@@ -123,37 +137,37 @@ record make-group {ℓ} (X : 𝒰 ℓ) : 𝒰 ℓ where
     id  : X
     _⋆_ : X → X → X
     inverse : X → X
-    id-l      : Unital-left  id _⋆_
-    inverse-l : Inverse-left id _⋆_ inverse
-    assoc     : Associative _⋆_
+    id-l      : Unitality-lᵘ X id _⋆_
+    inverse-l : Invertibility-lᵘ X id inverse _⋆_
+    assoc     : Associativityᵘ X _⋆_
 
   private instance
     Reflᵘ-make-group : Reflᵘ X
     Reflᵘ-make-group .mempty = id
 
-    Symmᵘ-make-group : Symmᵘ X
-    Symmᵘ-make-group .inv = inverse
+    Symᵘ-make-group : Symᵘ X
+    Symᵘ-make-group .minv = inverse
 
     Transᵘ-make-group : Transᵘ X
     Transᵘ-make-group ._<>_ = _⋆_
 
-  inverse-r : Inverse-right id _⋆_ inverse
+  inverse-r : Invertibility-rᵘ X id inverse _⋆_
   inverse-r x =
     x ∙ x ⁻¹                         ~⟨ id-l _ ⟨
-    ⌜ refl ⌝ ∙ (x ∙ x ⁻¹)            ~⟨ ap¡ (inverse-l _) ⟨
+    ⌜ id ⌝ ∙ (x ∙ x ⁻¹)              ~⟨ ap¡ (inverse-l (x ⁻¹)) ⟨
     (x ⁻¹ ⁻¹ ∙ x ⁻¹) ∙ (x ∙ x ⁻¹)    ~⟨ assoc _ _ _ ⟨
-    x ⁻¹ ⁻¹ ∙ ⌜ x ⁻¹ ∙ (x ∙ x ⁻¹) ⌝  ~⟨ ap! (assoc _ _ _) ⟩
-    x ⁻¹ ⁻¹ ∙ (⌜ x ⁻¹ ∙ x ⌝ ∙ x ⁻¹)  ~⟨ ap! (inverse-l _) ⟩
-    x ⁻¹ ⁻¹ ∙ ⌜ refl ∙ x ⁻¹ ⌝        ~⟨ ap! (id-l _) ⟩
+    x ⁻¹ ⁻¹ ∙ ⌜ x ⁻¹ ∙ (x ∙ x ⁻¹) ⌝  ~⟨ ap! (assoc (x ⁻¹) x (x ⁻¹)) ⟩
+    x ⁻¹ ⁻¹ ∙ (⌜ x ⁻¹ ∙ x ⌝ ∙ x ⁻¹)  ~⟨ ap! (inverse-l x) ⟩
+    x ⁻¹ ⁻¹ ∙ ⌜ id ∙ x ⁻¹ ⌝          ~⟨ ap! (id-l (x ⁻¹)) ⟩
     x ⁻¹ ⁻¹ ∙ x ⁻¹                   ~⟨ inverse-l _ ⟩
-    refl                             ∎
+    id                               ∎
 
-  id-r : Unital-right id _⋆_
+  id-r : Unitality-rᵘ X id _⋆_
   id-r x =
-    x ∙ ⌜ refl ⌝      ~⟨ ap¡ (inverse-l _) ⟨
+    x ∙ ⌜ id ⌝        ~⟨ ap¡ (inverse-l _) ⟨
     x ∙ (x ⁻¹ ∙ x)    ~⟨ assoc _ _ _ ⟩
     ⌜ x ∙ x ⁻¹ ⌝ ∙ x  ~⟨ ap! (inverse-r _) ⟩
-    refl ∙ x          ~⟨ id-l _ ⟩
+    id ∙ x            ~⟨ id-l _ ⟩
     x                 ∎
 
   to-is-group : is-group _⋆_

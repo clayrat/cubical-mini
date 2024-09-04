@@ -7,16 +7,16 @@ open import Foundations.Prim.Extension  public
 open import Foundations.Prim.Kan        public
 open import Foundations.Prim.Glue       public
 
-open import Foundations.Correspondences.Binary.Reflexive  public
-open import Foundations.Correspondences.Binary.Symmetric  public
-open import Foundations.Correspondences.Binary.Transitive public
-open import Foundations.Pi.Base                           public
-open import Foundations.Sigma.Base                        public
+open import Foundations.Notation   public
+open import Foundations.Pi.Base    public
+open import Foundations.Sigma.Base public
 
 open import Agda.Builtin.Nat
   using (zero; suc)
   renaming (Nat to ℕ)
-open import Agda.Builtin.Unit      public
+open import Agda.Builtin.Unit
+  renaming (⊤ to ⊤ₜ)
+  public
 
 private variable
   ℓ ℓ′ ℓ″ ℓ‴ ℓᵃ ℓᵇ ℓᶜ : Level
@@ -38,7 +38,7 @@ Square : {a₀₀ a₀₁ : A} (p : a₀₀ ＝ a₀₁)
 Square p q r s = ＜ q ／ (λ j → p j ＝ r j) ＼ s ＞
 
 infix 0 Square-syntax
-Square-syntax : (d : ⊤)
+Square-syntax : (d : ⊤ₜ)
                 (a₀₀ a₀₁ a₁₀ a₁₁ : A)
                 (p : a₀₀ ＝ a₀₁) (q : a₀₀ ＝ a₁₀)
                 (r : a₁₀ ＝ a₁₁) (s : a₀₁ ＝ a₁₁)
@@ -79,9 +79,10 @@ apᴾ : {A : I → Type ℓ} {B : (i : I) → A i → Type ℓ′}
 apᴾ f p i = f i (p i)
 {-# INLINE apᴾ #-}
 
-ap² : {C : Π[ a ꞉ A ] Π[ b ꞉ B a ] Type ℓ}
+ap² : {ℓ ℓ′ ℓ″ : Level}
+      {A : Type ℓ} {B : A → Type ℓ′} {C : Π[ a ꞉ A ] Π[ b ꞉ B a ] Type ℓ″}
       (f : Π[ a ꞉ A ] Π[ b ꞉ B a ] C a b)
-      (p : x ＝ y) {u : B x} {v : B y}
+      {x y : A} (p : x ＝ y) {u : B x} {v : B y}
       (q : ＜     u    ／ (λ i →          B (p i)) ＼        v ＞)
     →      ＜ f x u ／ (λ i    → C (p i) (q    i ))   ＼ f y v ＞
 ap² f p q i = f (p i) (q i)
@@ -155,7 +156,8 @@ opaque
       j (j = i0) → q i
 
   -- any two definitions of double composition are equal
-  ∙∙-unique : (p : w ＝ x) (q : x ＝ y) (r : y ＝ z)
+  ∙∙-unique : {A : Type ℓᵃ} {x y z w : A}
+              (p : w ＝ x) (q : x ＝ y) (r : y ＝ z)
             → (α β : Σ[ s ꞉ w ＝ z ] Square (symₚ p) q r s)
             → α ＝ β
   ∙∙-unique p q r (α , α-fill) (β , β-fill) i =
@@ -171,7 +173,8 @@ opaque
       square : α ＝ β
       square i k = cube i i1 k
 
-  ∙∙-contract : (p : w ＝ x) (q : x ＝ y) (r : y ＝ z)
+  ∙∙-contract : {A : Type ℓᵃ} {x y z w : A}
+                (p : w ＝ x) (q : x ＝ y) (r : y ＝ z)
               → (β : Σ[ s ꞉ w ＝ z ] Square (symₚ p) q r s)
               → (p ∙∙ q ∙∙ r , ∙∙-filler p q r) ＝ β
   ∙∙-contract p q r = ∙∙-unique p q r _
@@ -241,10 +244,13 @@ instance
   Refl-Path : Refl (Path A)
   Refl-Path .refl = reflₚ
 
-  Symm-Path : Symmetric (Path A)
-  Symm-Path ._⁻¹ = symₚ
+  Sym-Path : Symʰ (Path A)
+  Sym-Path .sym = symₚ
 
-  Trans-Path : Transitive (Path A)
+  Invol-Path : Involʰ (Path A)
+  Invol-Path .sym-invol _ = refl
+
+  Trans-Path : Transʰ (Path A)
   Trans-Path ._∙_ = _∙ₚ_
 
 
@@ -354,13 +360,13 @@ subst-refl = transport-refl
 
 -- Function extensionality
 
-fun-ext : {B : A → I → Type ℓ′}
+fun-ext : {A : Type ℓ} {B : A → I → Type ℓ′}
           {f : Π[ a ꞉ A ] B a i0} {g : Π[ a ꞉ A ] B a i1}
         → Π[ a ꞉ A ] ＜ f a    ／                B a  ＼    g a ＞
         →            ＜ f   ／ (λ i → Π[ x ꞉ A ] B x i)  ＼ g   ＞
 fun-ext p i x = p x i
 
-happly : {B : A → I → Type ℓ′}
+happly : {A : Type ℓ} {B : A → I → Type ℓ′}
          {f : Π[ a ꞉ A ] B a i0} {g : Π[ a ꞉ A ] B a i1}
        →            ＜ f      ／ (λ i → Π[ a ꞉ A ] B a i) ＼    g   ＞
        → Π[ x ꞉ A ] ＜ f x ／                      B x       ＼ g x ＞
@@ -375,14 +381,16 @@ _∎
     {_~_ : A → A → 𝒰 ℓ} ⦃ rfl : Refl _~_ ⦄
   → (x : A) → x ~ x
 _ ∎ = refl
+{-# INLINE _∎ #-}
 
 infixr 2 _~⟨⟩_ _=⟨⟩_
 _~⟨⟩_
   : {A : Type ℓᵃ} {B : Type ℓᵇ}
     {_~I_ : A → B → 𝒰 ℓ} {_~O_ : B → A → 𝒰 ℓ′}
-    ⦃ sy : Symm _~I_ _~O_ ⦄ -- for inference TODO improve
+    ⦃ sy : Sym _~I_ _~O_ ⦄ -- for inference TODO improve
   → (x : B) {y : A} → x ~O y → x ~O y
 _~⟨⟩_ _ xy = xy
+{-# INLINE _~⟨⟩_ #-}
 
 _=⟨⟩_ : {A : Type ℓᵃ} → (x : A) {y : A} → x ＝ y → x ＝ y
 _=⟨⟩_ = _~⟨⟩_
@@ -393,6 +401,7 @@ _=⟨⟩_ = _~⟨⟩_
     ⦃ rfl : Refl _~_ ⦄
     {x y : A} → x ＝ y → y ~ x
 =→~⁻ {_~_} {x} p = subst (_~ x) p refl
+{-# INLINE =→~⁻ #-}
 
 =→~
   : {A : Type ℓᵃ}
@@ -400,6 +409,7 @@ _=⟨⟩_ = _~⟨⟩_
     ⦃ rfl : Refl _~_ ⦄
     {x y : A} → x ＝ y → x ~ y
 =→~ p = =→~⁻ (p ⁻¹)
+{-# INLINE =→~ #-}
 
 infixr 2 _~⟨_⟩_ _=⟨_⟩_
 _~⟨_⟩_
@@ -408,6 +418,7 @@ _~⟨_⟩_
     ⦃ tra : Trans _~L_ _~R_ _~O_ ⦄
   → (x : A) {y : B} {z : C} → x ~L y → y ~R z → x ~O z
 _ ~⟨ x~y ⟩ y~z = x~y ∙ y~z
+{-# INLINE _~⟨_⟩_ #-}
 
 _=⟨_⟩_
   : {A : Type ℓᵃ} {B : Type ℓᵇ}
@@ -416,14 +427,16 @@ _=⟨_⟩_
     ⦃ tra : Trans _~L_ _~R_ _~O_ ⦄
   → (x : A) {y : A} {z : B} → x ＝ y → y ~R z → x ~O z
 _=⟨_⟩_ {_~L_} x {y} x=y = x ~⟨ =→~ x=y ⟩_
+{-# INLINE _=⟨_⟩_ #-}
 
 infixr 2 _~⟨_⟨_ _=⟨_⟨_
 _~⟨_⟨_
   : {A : Type ℓᵃ} {B : Type ℓᵇ} {C : Type ℓᶜ}
     {_~L_ : A → B → 𝒰 ℓ} {_~L′_ : B → A → 𝒰 ℓ′} {_~R_ : B → C → 𝒰 ℓ″} {_~O_ : A → C → 𝒰 ℓ‴}
-    ⦃ tra : Trans _~L_ _~R_ _~O_ ⦄ ⦃ sy : Symm _~L′_ _~L_ ⦄
+    ⦃ tra : Trans _~L_ _~R_ _~O_ ⦄ ⦃ sy : Sym _~L′_ _~L_ ⦄
   → (x : A) {y : B} {z : C} → y ~L′ x → y ~R z → x ~O z
 x ~⟨ p ⟨ q = p ⁻¹ ∙ q
+{-# INLINE _~⟨_⟨_ #-}
 
 _=⟨_⟨_
   : {A : Type ℓᵃ} {B : Type ℓᵇ}
@@ -432,6 +445,7 @@ _=⟨_⟨_
     ⦃ tra : Trans _~L_ _~R_ _~O_ ⦄
   → (x : A) {y : A} {z : B} → y ＝ x → y ~R z → x ~O z
 _=⟨_⟨_ {_~L_} x {y} y=x = x ~⟨ =→~⁻ y=x ⟩_
+{-# INLINE _=⟨_⟨_ #-}
 
 infixr 2 ~⟨⟩-syntax =⟨⟩-syntax
 ~⟨⟩-syntax
@@ -441,19 +455,23 @@ infixr 2 ~⟨⟩-syntax =⟨⟩-syntax
   → (x : A) {y : B} {z : C} → x ~L y → y ~R z → x ~O z
 ~⟨⟩-syntax = _~⟨_⟩_
 syntax ~⟨⟩-syntax x (λ i → B) y = x ~[ i ]⟨ B ⟩ y
+{-# INLINE ~⟨⟩-syntax #-}
 
 =⟨⟩-syntax : {A : Type ℓᵃ} (x : A) {y z : A} → x ＝ y → y ＝ z → x ＝ z
 =⟨⟩-syntax = _=⟨_⟩_
 syntax =⟨⟩-syntax x (λ i → B) y = x =[ i ]⟨ B ⟩ y
+{-# INLINE =⟨⟩-syntax #-}
 
 infixr 3 =⟨⟩⟨⟩-syntax
 =⟨⟩⟨⟩-syntax : (x y : A) → x ＝ y → y ＝ z → z ＝ w → x ＝ w
 =⟨⟩⟨⟩-syntax x y p q r = p ∙∙ q ∙∙ r
 syntax =⟨⟩⟨⟩-syntax x y B C = x =⟨ B ⟩= y =⟨ C ⟩=
+{-# INLINE =⟨⟩⟨⟩-syntax #-}
 
 infixr 2.5 _=⟨_⟩=⟨_⟩_
 _=⟨_⟩=⟨_⟩_ : (x : A) → x ＝ y → y ＝ z → z ＝ w → x ＝ w
 _ =⟨ x=y ⟩=⟨ y=z ⟩ z=w = x=y ∙∙ y=z ∙∙ z=w
+{-# INLINE _=⟨_⟩=⟨_⟩_ #-}
 
 
 -- h-levels
@@ -462,14 +480,14 @@ HLevel : Type₀
 HLevel = ℕ
 
 _on-paths-of_ : (Type ℓ → Type ℓ′) → Type ℓ → Type (ℓ ⊔ ℓ′)
-S on-paths-of A = Π[ a ꞉ A ] Π[ a′ ꞉ A ] S (a ＝ a′)
+S on-paths-of A = (a a′ : A) → S (a ＝ a′)
 
 is-central : {A : Type ℓ} (c : A) → Type _
-is-central {A} c = Π[ x ꞉ A ] (c ＝ x)
+is-central {A} c = (x : A) → c ＝ x
 
 is-of-hlevel : HLevel → Type ℓ → Type ℓ
-is-of-hlevel 0 A = Σ[ x ꞉ A ] is-central x
-is-of-hlevel 1 A = Π[ x ꞉ A ] is-central x
+is-of-hlevel 0 A = Σ A λ x → is-central x
+is-of-hlevel 1 A = (x : A) → is-central x
 is-of-hlevel (suc (suc h)) A = is-of-hlevel (suc h) on-paths-of A
 
 is-contr : Type ℓ → Type ℓ
@@ -737,12 +755,19 @@ the : (A : Type ℓ) → A → A
 the _ a = a
 
 inspect : (x : A) → Singletonₚ x
-inspect x = x , reflₚ
+inspect x = x , refl
 
 record Recall {A : Type ℓ} {B : A → Type ℓ′}
   (f : Π[ x ꞉ A ] B x) (x : A) (y : B x) : Type (ℓ ⊔ ℓ′) where
   constructor ⟪_⟫
   field eq : f x ＝ y
 
-recall : (f : Π[ x ꞉ A ] B x) (x : A) → Recall f x (f x)
-recall f x = ⟪ reflₚ ⟫
+recall : {A : Type ℓ} {B : A → Type ℓ′}
+         (f : Π[ x ꞉ A ] B x) (x : A)
+       → Recall f x (f x)
+recall f x = ⟪ refl ⟫
+
+infix 30 _∈!_
+_∈!_ : {A : Type ℓ} {ℙA : Type ℓ′} ⦃ m : Membership A ℙA ℓ″ ⦄
+     → A → ℙA → Type ℓ″
+x ∈! y = is-contr (x ∈ y)

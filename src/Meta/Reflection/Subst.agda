@@ -5,6 +5,8 @@ open import Foundations.Base
 
 open import Meta.Effect.Bind
 open import Meta.Effect.Foldable
+open import Meta.Effect.Idiom
+open import Meta.Effect.Map
 open import Meta.Effect.Traversable
 open import Meta.Reflection.Base
 
@@ -14,6 +16,7 @@ open import Data.List.Operations
 open import Data.List.Instances.Bind
 open import Data.List.Instances.Foldable
 open import Data.List.Instances.FromProduct
+open import Data.List.Instances.Map
 open import Data.List.Instances.Traversable
 open import Data.Maybe.Base
 open import Data.Maybe.Instances.Bind
@@ -139,10 +142,10 @@ lookup-tm (suc fuel) (wk n ρ) i = do
 lookup-tm (suc fuel) (x ∷ₛ ρ) i with (i == 0)
 … | true  = pure x
 … | false = lookup-tm fuel ρ (i ∸ 1)
-lookup-tm (suc fuel) (strengthen n ρ) i with (i <ᵇ n)
+lookup-tm (suc fuel) (strengthen n ρ) i with (i <? n)
 … | true  = pure unknown
 … | false = lookup-tm fuel ρ (i ∸ n)
-lookup-tm (suc fuel) (lift n σ) i with (i <ᵇ n)
+lookup-tm (suc fuel) (lift n σ) i with (i <? n)
 … | true  = pure $ var i []
 … | false = do
   t ← lookup-tm fuel σ (i ∸ n)
@@ -251,7 +254,7 @@ Ren = List ℕ
 
 -- TODO refactor
 inverseR : Ren → Ren
-inverseR = go 0 ∘ insertion-sort (λ x y → x .fst <ᵇ suc (y .fst)) ∘ (λ vs → zip vs (count-from-to 0 (length vs))) where
+inverseR = go 0 ∘ insertion-sort (λ x y → x .fst <? suc (y .fst)) ∘ (λ vs → zip vs (count-from-to 0 (length vs))) where
   go : ℕ → List (ℕ × ℕ) → Ren
   go n [] = []
   go n ((k , v) ∷ ss) = count-from-to n k ++ (v ∷ go (suc k) ss)

@@ -6,15 +6,15 @@ open import Foundations.Prelude
 open import Logic.Decidability
 open import Logic.Discreteness
 
-open import Data.Char.Instances.Discrete
+open import Data.Char.Path
 open import Data.Dec.Base as Dec
-open import Data.Float.Instances.Discrete
+open import Data.Float.Path
 open import Data.Id.Inductive
 open import Data.List.Base
-open import Data.List.Instances.Discrete
-open import Data.Nat.Instances.Discrete
-open import Data.String.Instances.Discrete
-open import Data.Word.Instances.Discrete
+open import Data.List.Path
+open import Data.Nat.Path
+open import Data.String.Path
+open import Data.Word.Path
 
 open import Data.Reflection.Abs
 open import Data.Reflection.Argument
@@ -88,7 +88,7 @@ instance
 -- Fixity
 
 instance
-  Associativity-is-discrete : is-discrete Associativity
+  Associativity-is-discrete : is-discrete Associativity′
   Associativity-is-discrete = is-discreteⁱ→is-discrete λ where
     left-assoc  left-assoc  → yes reflⁱ
     left-assoc  right-assoc → no λ ()
@@ -439,40 +439,40 @@ private
   pattern-discrete (proj f) (proj f₁) = caseᵈ (f ＝ⁱ f₁) of λ where
     (yes f=f₁) → yes (apⁱ proj f=f₁)
     (no ¬as)   → no λ { reflⁱ → ¬as reflⁱ }
-  pattern-discrete (absurd x) (absurd x₁) = caseᵈ (x ＝ⁱ x₁) of λ where
-    (yes x=x₁) → yes (apⁱ absurd x=x₁)
+  pattern-discrete (absurd′ x) (absurd′ x₁) = caseᵈ (x ＝ⁱ x₁) of λ where
+    (yes x=x₁) → yes (apⁱ absurd′ x=x₁)
     (no ¬as)   → no λ { reflⁱ → ¬as reflⁱ }
 
   pattern-discrete (con c ps) (dot t) = no λ()
   pattern-discrete (con c ps) (var x) = no λ()
   pattern-discrete (con c ps) (lit l) = no λ()
   pattern-discrete (con c ps) (proj f) = no λ()
-  pattern-discrete (con c ps) (absurd x) = no λ()
+  pattern-discrete (con c ps) (absurd′ x) = no λ()
   pattern-discrete (dot t) (con c ps) = no λ()
   pattern-discrete (dot t) (var x) = no λ()
   pattern-discrete (dot t) (lit l) = no λ()
   pattern-discrete (dot t) (proj f) = no λ()
-  pattern-discrete (dot t) (absurd x) = no λ()
+  pattern-discrete (dot t) (absurd′ x) = no λ()
   pattern-discrete (var x) (con c ps) = no λ()
   pattern-discrete (var x) (dot t) = no λ()
   pattern-discrete (var x) (lit l) = no λ()
   pattern-discrete (var x) (proj f) = no λ()
-  pattern-discrete (var x) (absurd x₁) = no λ()
+  pattern-discrete (var x) (absurd′ x₁) = no λ()
   pattern-discrete (lit l) (con c ps) = no λ()
   pattern-discrete (lit l) (dot t) = no λ()
   pattern-discrete (lit l) (var x) = no λ()
   pattern-discrete (lit l) (proj f) = no λ()
-  pattern-discrete (lit l) (absurd x) = no λ()
+  pattern-discrete (lit l) (absurd′ x) = no λ()
   pattern-discrete (proj f) (con c ps) = no λ()
   pattern-discrete (proj f) (dot t) = no λ()
   pattern-discrete (proj f) (var x) = no λ()
   pattern-discrete (proj f) (lit l) = no λ()
-  pattern-discrete (proj f) (absurd x) = no λ()
-  pattern-discrete (absurd x) (con c ps) = no λ()
-  pattern-discrete (absurd x) (dot t) = no λ()
-  pattern-discrete (absurd x) (var x₁) = no λ()
-  pattern-discrete (absurd x) (lit l) = no λ()
-  pattern-discrete (absurd x) (proj f) = no λ()
+  pattern-discrete (proj f) (absurd′ x) = no λ()
+  pattern-discrete (absurd′ x) (con c ps) = no λ()
+  pattern-discrete (absurd′ x) (dot t) = no λ()
+  pattern-discrete (absurd′ x) (var x₁) = no λ()
+  pattern-discrete (absurd′ x) (lit l) = no λ()
+  pattern-discrete (absurd′ x) (proj f) = no λ()
 
   -- helpers
 

@@ -3,9 +3,6 @@ module Data.Container.Instances.Membership where
 
 open import Foundations.Prelude
 
-open import Meta.Brackets
-open import Meta.Membership
-
 open import Data.Container.Base
 open import Data.Container.Instances.Brackets
 

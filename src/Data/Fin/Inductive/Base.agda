@@ -4,10 +4,13 @@ module Data.Fin.Inductive.Base where
 open import Foundations.Base
 open import Foundations.Equiv
 
+open import Data.Bool.Base
+  using (false; true)
 open import Data.Fin.Interface
 open import Data.Nat.Base as ℕ
   using (ℕ; zero; suc)
   public
+open import Data.Reflects.Base
 open import Data.Sum.Base
 
 private variable
@@ -61,8 +64,9 @@ fin→ℕ (fsuc k) = suc (fin→ℕ k)
 module _ where
   open import Data.Fin.Base
     renaming (Fin to Finᵈ; fzero to fzeroᵈ; fsuc to fsucᵈ)
+
   default≃inductive : ∀{n} → Finᵈ n ≃ Fin n
-  default≃inductive = ≅→≃ $ to , iso from ri li where
+  default≃inductive = ≅→≃ $ iso to from (fun-ext ri) (fun-ext li) where
     to : ∀{n} → Finᵈ n → Fin n
     to {suc _} fzeroᵈ    = fzero
     to {suc _} (fsucᵈ k) = fsuc (to k)
@@ -80,3 +84,10 @@ module _ where
     li {suc _} (fsucᵈ _) = ap fsucᵈ (li _)
 
   module default≃inductive {n} = Equiv (default≃inductive {n})
+
+instance
+  Reflects-Fin-0 : Reflects (Fin 0) false
+  Reflects-Fin-0 = ofⁿ λ ()
+
+  Reflects-Fin-1 : Reflects (Fin 1) true
+  Reflects-Fin-1 = ofʸ fzero

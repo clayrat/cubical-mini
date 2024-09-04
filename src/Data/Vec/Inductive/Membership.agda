@@ -3,7 +3,7 @@ module Data.Vec.Inductive.Membership where
 
 open import Foundations.Base
 
-open import Meta.Membership
+open import Meta.Effect.Alternative
 
 open import Logic.Discreteness
 
@@ -11,7 +11,6 @@ open import Data.Dec as Dec
 open import Data.Empty.Base
 open import Data.Fin.Inductive.Base
 open import Data.Sum.Base
-open import Data.Sum.Instances.Decidable
 open import Data.Vec.Inductive.Operations
 
 private variable
@@ -32,7 +31,10 @@ instance
   Dec-∈ᵥ {n = 0} {x} {([])} = no λ()
   Dec-∈ᵥ {n = suc _} {x} {a ∷ as} =
     Dec.dmap [ fzero ,_ , bimap fsuc id ]ᵤ
-             (λ { x∉as (fzero  , q) → x∉as $ inl q
-                ; x∉as (fsuc i , q) → x∉as $ inr $ i , q })
-             (Dec-⊎ ⦃ a ≟ x ⦄ ⦃ Dec-∈ᵥ {x = x} {as} ⦄)
+             (_∘ go)
+             (a ≟ x <+> Dec-∈ᵥ {x = x} {as})
+    where
+    go : _
+    go (fzero  , q) = inl q
+    go (fsuc k , q) = inr (_ , q)
   {-# INCOHERENT Dec-∈ᵥ #-} -- really?

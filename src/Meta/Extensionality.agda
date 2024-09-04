@@ -2,14 +2,10 @@
 module Meta.Extensionality where
 
 open import Foundations.Prelude
-  hiding (_$_)
 
 open import Meta.Effect.Alt
 open import Meta.Literals.FromProduct
-open import Meta.Reflection.Base
-open import Meta.Reflection.Neutral
-open import Meta.Reflection.Signature
-open import Meta.Reflection.Subst
+open import Meta.Reflection
 open import Meta.Variadic
 
 open import Data.Bool.Base
@@ -19,6 +15,8 @@ open import Data.Maybe.Instances.Alt
 open import Data.Reflection.Error
 open import Data.Reflection.Instances.FromString
 open import Data.Reflection.Term
+open import Data.Reflects.Base
+open import Data.Unit.Base
 
 
 record Extensional {ℓ} (A : Type ℓ) (ℓ-rel : Level) : Type (ℓ ⊔ ℓsuc ℓ-rel) where
@@ -122,6 +120,12 @@ instance
   Extensional-Type .reflᵉ _ = refl
   Extensional-Type .idsᵉ = univalence-identity-system
 
+  Extensional→Local-Size
+    : ∀ {ℓ ℓr} {A : Type ℓ} ⦃ sa : Extensional A ℓr ⦄
+    → {x y : A} → Size ℓr (x ＝ y)
+  Extensional→Local-Size ⦃ sa ⦄ {x} {y} .Size.has-of-size =
+    sa .Pathᵉ x y , identity-system-gives-path (sa .idsᵉ)
+  {-# INCOHERENT Extensional→Local-Size #-}
 
 ext
   : ∀ {ℓ ℓr} {A : Type ℓ} {x y : A} ⦃ r : Extensional A ℓr ⦄
@@ -189,9 +193,9 @@ trivial-iso!
   → (g : B → A)
   → {@(tactic trivial-worker r (g ∘ f) id) p : Pathᵉ r (g ∘ f) id}
   → {@(tactic trivial-worker s (f ∘ g) id) q : Pathᵉ s (f ∘ g) id}
-  → Iso A B
+  → A ≅ B
 trivial-iso! ⦃ r ⦄ ⦃ s ⦄ f g {p} {q} =
-  f , iso g (s .idsᵉ .to-path q $ₚ_) (r .idsᵉ .to-path p $ₚ_)
+  iso f g (s .idsᵉ .to-path q) (r .idsᵉ .to-path p)
 
 macro
   reext!
@@ -209,3 +213,11 @@ Pathᵉ-is-of-hlevel
 Pathᵉ-is-of-hlevel n sa hl =
   ≃→is-of-hlevel n (identity-system-gives-path (sa .idsᵉ))
     ((path-is-of-hlevel n hl _ _))
+
+reflects-path→extensional!
+  : {A : Type ℓ} {_==_ : A → A → Bool}
+    ⦃ re : {x y : A} → Reflects (x ＝ y) (x == y) ⦄
+  → Extensional A 0ℓ
+reflects-path→extensional! {_==_} .Pathᵉ x y = ⌞ x == y ⌟
+reflects-path→extensional! .reflᵉ = _
+reflects-path→extensional! .idsᵉ = reflects-path→identity-system!

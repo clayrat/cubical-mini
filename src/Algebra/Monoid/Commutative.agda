@@ -6,14 +6,11 @@ open import Categories.Prelude
 open import Algebra.Monoid public
 
 private variable
-  ℓ : Level
+  ℓ ℓ′ : Level
   A : 𝒰 ℓ
   e x y z : A
   _✦_ : A → A → A
   n : HLevel
-
-Commutative : (_⋆_ : A → A → A) → 𝒰 _
-Commutative {A} _⋆_ = Π[ x ꞉ A ] Π[ y ꞉ A ] (y ⋆ x ＝ x ⋆ y)
 
 -- commutative monoids
 
@@ -22,7 +19,7 @@ record is-comm-monoid {A : 𝒰 ℓ} (_⋆_ : A → A → A) : 𝒰 ℓ where
   field has-monoid : is-monoid _⋆_
   open is-monoid has-monoid public
 
-  field comm : Commutative _⋆_
+  field comm : Commutativityᵘ A _⋆_
 
 unquoteDecl is-comm-monoid-iso = declare-record-iso is-comm-monoid-iso (quote is-comm-monoid)
 
@@ -55,6 +52,11 @@ comm-monoid-on↪monoid-on .snd = set-injective→is-embedding! λ p →
   Equiv.injective (≅ₜ→≃ cmonoid-on-iso) $
     ap Monoid-on._⋆_ p ,ₚ prop!
 
+instance
+  ⇒-CMonoid : ⇒-notation (Σ[ X ꞉ Set ℓ ] CMonoid-on ⌞ X ⌟) (Σ[ Y ꞉ Set ℓ′ ] CMonoid-on ⌞ Y ⌟) (𝒰 (ℓ ⊔ ℓ′))
+  ⇒-CMonoid ._⇒_ (A , X) (B , Y) = Total-hom (λ P Q → ⌞ P ⌟ → ⌞ Q ⌟)
+    (λ f P Q → Monoid-hom f (comm-monoid-on↪monoid-on .fst P) (comm-monoid-on↪monoid-on .fst Q)) {a = A} {b = B} X Y
+
 
 record make-comm-monoid {ℓ} (X : 𝒰 ℓ) : 𝒰 ℓ where
   no-eta-equality
@@ -62,10 +64,10 @@ record make-comm-monoid {ℓ} (X : 𝒰 ℓ) : 𝒰 ℓ where
     monoid-is-set : is-set X
     id  : X
     _⋆_ : X → X → X
-    id-l  : Unital-left  id _⋆_
-    id-r  : Unital-right id _⋆_
-    assoc : Associative _⋆_
-    comm  : Commutative _⋆_
+    id-l  : Unitality-lᵘ X id _⋆_
+    id-r  : Unitality-rᵘ X id _⋆_
+    assoc : Associativityᵘ X _⋆_
+    comm  : Commutativityᵘ X _⋆_
 
   to-is-comm-monoid : is-comm-monoid _⋆_
   to-is-comm-monoid .is-comm-monoid.has-monoid = to-is-monoid go where

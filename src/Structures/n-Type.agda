@@ -6,10 +6,9 @@ open import Meta.Effect.Alt
 open import Meta.Extensionality
 open import Meta.Projection
 open import Meta.Record
-open import Meta.Reflection.Base
-open import Meta.Reflection.Neutral
-open import Meta.Reflection.Signature
+open import Meta.Reflection
 
+open import Data.Empty.Base
 open import Data.Bool.Base
 open import Data.List.Base
 open import Data.Maybe.Base
@@ -19,12 +18,16 @@ open import Data.Reflection.Instances.FromString
 open import Data.Reflection.Literal
 open import Data.Reflection.Name
 open import Data.Reflection.Term
+open import Data.Sum.Base
+open import Data.Sum.Path
+open import Data.Truncation.Propositional.Base
+open import Data.Unit.Base
 
 private variable
-  ℓ ℓ′ : Level
+  ℓ ℓ′ ℓ″ : Level
   A : Type ℓ
   B : Type ℓ′
-  n : HLevel
+  m n k : HLevel
 
 record n-Type (ℓ : Level) (n : HLevel) : Type (ℓsuc ℓ) where
   constructor el
@@ -42,7 +45,66 @@ private variable
 instance
   Underlying-n-Type : Underlying (n-Type ℓ n)
   Underlying-n-Type {ℓ} .Underlying.ℓ-underlying = ℓ
-  Underlying-n-Type .⌞_⌟⁰ = carrier
+  Underlying-n-Type .⌞_⌟ = carrier
+
+  Refl-n-Fun : Refl {A = n-Type ℓ n} λ X Y → Fun ⌞ X ⌟ ⌞ Y ⌟
+  Refl-n-Fun .refl x = x
+  {-# INCOHERENT Refl-n-Fun #-}
+
+  Trans-n-Fun
+    : Trans {A = n-Type ℓ n} {B = n-Type ℓ′ n} {C = n-Type ℓ″ n}
+        (λ X Y → Fun ⌞ X ⌟ ⌞ Y ⌟) (λ X Y → Fun ⌞ X ⌟ ⌞ Y ⌟) (λ X Y → Fun ⌞ X ⌟ ⌞ Y ⌟)
+  Trans-n-Fun ._∙_ f g x = g (f x)
+  {-# INCOHERENT Trans-n-Fun #-}
+
+  ×-n-Type : ×-notation (n-Type ℓ n) (n-Type ℓ′ n) (n-Type (ℓ ⊔ ℓ′) n)
+  ×-n-Type ._×_ (el A p) (el B q) = el (A × B) (×-is-of-hlevel _ p q)
+
+  ⇒-n-Type : ⇒-notation (n-Type ℓ m) (n-Type ℓ′ n) (n-Type (ℓ ⊔ ℓ′) n)
+  ⇒-n-Type ._⇒_ (el A _) (el B q) = el (A ⇒ B) (fun-is-of-hlevel _ q)
+
+  ⊎-n-Type : ⦃ 2 ≤ʰ n ⦄ → ⊎-notation (n-Type ℓ n) (n-Type ℓ′ n) (n-Type (ℓ ⊔ ℓ′) n)
+  ⊎-n-Type ⦃ s≤ʰs (s≤ʰs _) ⦄ ._⊎_ (el A p) (el B q) = el (A ⊎ B) (⊎-is-of-hlevel _ p q)
+
+  ⊎₁-n-Type : ⦃ z : 1 ≤ʰ k ⦄ → ⊎₁-notation (n-Type ℓ m) (n-Type ℓ′ n) (n-Type (ℓ ⊔ ℓ′) k)
+  ⊎₁-n-Type ⦃ z = s≤ʰs _ ⦄ ._⊎₁_ (el A _) (el B _) = el (A ⊎₁ B) (is-prop→is-of-hlevel-suc squash₁)
+
+  ¬-n-Type : ⦃ z : 1 ≤ʰ n ⦄ → ¬-notation (n-Type ℓ m) (n-Type ℓ n)
+  ¬-n-Type ⦃ z = s≤ʰs _ ⦄ .¬_ (el A _) = el (¬ A) (fun-is-of-hlevel _ (hlevel _))
+
+  Π-n-Type
+    : {A : Type ℓ} ⦃ ua : Underlying A ⦄
+    → Π-notation A (n-Type ℓ′ n) (n-Type (ua .ℓ-underlying ⊔ ℓ′) n)
+  Π-n-Type .Π-notation.Π X F = el (Π[ a ꞉ X ] ⌞ F a ⌟) (Π-is-of-hlevel _ λ x → F x .carrier-is-tr)
+
+  ∀-n-Type
+    : {A : Type ℓ} ⦃ ua : Underlying A ⦄
+    → ∀-notation A (n-Type ℓ′ n) (n-Type (ua .ℓ-underlying ⊔ ℓ′) n)
+  ∀-n-Type .∀-notation.∀′ X F = el (∀[ a ꞉ X ] ⌞ F a ⌟) (∀-is-of-hlevel _ λ x → F x .carrier-is-tr)
+
+  Σ-n-Type : Σ-notation (n-Type ℓ n) (n-Type ℓ′ n) (n-Type (ℓ ⊔ ℓ′) n)
+  Σ-n-Type .Σ-notation.Σ A F = el (Σ[ a ꞉ A ] ⌞ F a ⌟) (Σ-is-of-hlevel _ (A .carrier-is-tr) (λ x → F x .carrier-is-tr))
+
+  ∃-n-Type
+    : {A : Type ℓ} ⦃ ua : Underlying A ⦄ ⦃ z : 1 ≤ʰ k ⦄
+    → ∃-notation A (n-Type ℓ′ n) (n-Type (ua .ℓ-underlying ⊔ ℓ′) k)
+  ∃-n-Type ⦃ z = s≤ʰs _ ⦄ .∃-notation.∃ X F = el (∃[ a ꞉ X ] ⌞ F a ⌟) (is-prop→is-of-hlevel-suc squash₁)
+
+  ⊥-n-Type-small : ⦃ _ : 1 ≤ʰ n ⦄ → ⊥-notation (n-Type 0ℓ n)
+  ⊥-n-Type-small ⦃ s≤ʰs _ ⦄ .⊥ = el ⊥ (hlevel _)
+  {-# OVERLAPPING ⊥-n-Type-small #-}
+
+  ⊥-n-Type : ⦃ _ : 1 ≤ʰ n ⦄ → ⊥-notation (n-Type ℓ n)
+  ⊥-n-Type ⦃ s≤ʰs _ ⦄ .⊥ = el (Lift _ ⊥) (hlevel _)
+  {-# INCOHERENT ⊥-n-Type #-}
+
+  ⊤-n-Type-small : ⊤-notation (n-Type 0ℓ n)
+  ⊤-n-Type-small .⊤ = el ⊤ (hlevel _)
+  {-# OVERLAPPING ⊤-n-Type-small #-}
+
+  ⊤-n-Type : ⊤-notation (n-Type ℓ n)
+  ⊤-n-Type .⊤ = el ⊤ (hlevel _)
+  {-# INCOHERENT ⊤-n-Type #-}
 
 n-path : {X Y : n-Type ℓ n} → ⌞ X ⌟ ＝ ⌞ Y ⌟ → X ＝ Y
 n-path f i .carrier = f i
@@ -66,20 +128,32 @@ instance
   Extensional-n-Type .reflᵉ _ = refl
   Extensional-n-Type .idsᵉ .to-path = n-ua
   Extensional-n-Type .idsᵉ .to-path-over = Extensional-Type .idsᵉ .to-path-over
+  {-# OVERLAPPABLE Extensional-n-Type #-}
+
+  @0 Extensional-Prop : Extensional (n-Type ℓ 1) ℓ
+  Extensional-Prop .Pathᵉ (el A _) (el B _) = (A → B) × (B → A)
+  Extensional-Prop .reflᵉ _ = refl , refl
+  Extensional-Prop .idsᵉ .to-path {a = el A p} {b = el B q} (f , g) =
+    Equiv.injective (≅→≃ n-Type-iso) (ua (prop-extₑ! f g) ,ₚ prop!)
+    where instance _ = hlevel-prop-instance p
+                   _ = hlevel-prop-instance q
+  Extensional-Prop .idsᵉ .to-path-over {a = el _ p} _ = prop!
+    where instance _ = hlevel-prop-instance p
+  {-# OVERLAPPING Extensional-Prop #-}
 
 opaque
   unfolding ua
   @0 n-univalence : {X Y : n-Type ℓ n} → (⌞ X ⌟ ≃ ⌞ Y ⌟) ≃ (X ＝ Y)
-  n-univalence {n} {X} {Y} = n-ua , is-iso→is-equiv isic where
-    inv′ : ∀ {Y} → X ＝ Y → ⌞ X ⌟ ≃ ⌞ Y ⌟
-    inv′ p = =→≃ (ap carrier p)
+  n-univalence {ℓ} {n} {X} {Y} = n-ua , is-inv→is-equiv (invertible inv (fun-ext rinv) (fun-ext (linv {Y}))) where
+    inv : ∀ {Y} → X ＝ Y → ⌞ X ⌟ ≃ ⌞ Y ⌟
+    inv p = =→≃ (ap carrier p)
 
-    linv : ∀ {Y} → (inv′ {Y}) is-left-inverse-of n-ua
-    linv x = Σ-prop-path is-equiv-is-prop (fun-ext λ x → transport-refl _)
+    linv : {Y : n-Type ℓ n} → inv {Y} retract-of′ n-ua
+    linv x = fun-ext (λ z → transport-refl _) ,ₚ prop!
 
-    rinv : ∀ {Y} → (inv′ {Y}) is-right-inverse-of n-ua
-    rinv = Jₚ (λ y p → n-ua (inv′ p) ＝ p) path where
-      path : n-ua {X = X} (inv′ {X} refl) ＝ refl
+    rinv : ∀ {Y} → (inv {Y}) section-of′ n-ua
+    rinv = Jₚ (λ y p → n-ua (inv p) ＝ p) path where
+      path : n-ua {X = X} (inv {X} refl) ＝ refl
       path i j .carrier = ua.ε refl i j
       path i j .carrier-is-tr = is-prop→squareᴾ
         (λ i j → is-of-hlevel-is-prop
@@ -89,9 +163,6 @@ opaque
         (λ _ → carrier-is-tr X)
         (λ _ → carrier-is-tr X)
         i j
-
-    isic : is-iso (n-ua {X = X} {Y = Y})
-    isic = iso inv′ rinv (linv {Y})
 
 -- FIXME disgusting! rewrite it without resorting to direct cube manipulations
 opaque
@@ -241,20 +312,20 @@ instance opaque
 
 -- Usage
 private
-  module _ {A : Set ℓ} {B : A →̇ n-Type ℓ′ 3} where
-    _ : is-set (A →̇ A)
+  module _ {A : Set ℓ} {B : ⌞ A ⌟ → n-Type ℓ′ 3} where
+    _ : is-set ⌞ A ⇒ A ⌟
     _ = hlevel!
 
-    _ : is-of-hlevel 2 (A →̇ A →̇ A →̇ A)
+    _ : is-of-hlevel 2 ⌞ A ⇒ A ⇒ A ⇒ A ⌟
     _ = hlevel!
 
-    _ : is-of-hlevel 3 Σ[ B ]
+    _ : is-of-hlevel 3 Σ[ B × B ]
     _ = hlevel!
 
-    _ : ∀ a → is-of-hlevel 5 (A ×̇ A ×̇ (ℕ →̇ B a))
+    _ : ∀ a → is-of-hlevel 5 (⌞ A ⌟ × ⌞ A ⌟ × (ℕ ⇒ ⌞ B a ⌟))
     _ = hlevel!
 
-    _ : ∀ a → is-of-hlevel 3 (A ×̇ A ×̇ (ℕ →̇ B a))
+    _ : ∀ a → is-of-hlevel 3 (⌞ A × A ⌟ × ℕ ⇒ ⌞ B a ⌟)
     _ = hlevel!
 
     _ : (w z : Term) (x : ℕ) (r : ⌞ A ⌟) → is-of-hlevel 2 ⌞ A ⌟

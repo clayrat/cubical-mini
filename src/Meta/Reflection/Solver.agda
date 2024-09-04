@@ -4,6 +4,7 @@ module Meta.Reflection.Solver where
 open import Foundations.Base
 
 open import Meta.Effect.Alt
+open import Meta.Effect.Idiom
 open import Meta.Literals.FromString
 open import Meta.Reflection.Base
 open import Meta.Reflection.Variables
@@ -16,6 +17,7 @@ open import Data.Reflection.Error
 open import Data.Reflection.Instances.FromString
 open import Data.Reflection.Name
 open import Data.Reflection.Term
+open import Data.Unit.Base
 
 private variable
   ℓ : Level

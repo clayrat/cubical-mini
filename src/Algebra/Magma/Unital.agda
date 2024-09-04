@@ -6,18 +6,13 @@ open import Categories.Prelude
 open import Algebra.Magma public
 
 private variable
-  ℓ ℓ′ : Level
+  ℓ ℓ′ ℓ″ : Level
   A : 𝒰 ℓ
   B : 𝒰 ℓ′
+  C : 𝒰 ℓ″
   e x y z : A
   _✦_ : A → A → A
   n : HLevel
-
-Unital-left : (id : A) (_⋆_ : A → A → A) → 𝒰 _
-Unital-left {A} id _⋆_ = Π[ x ꞉ A ] (id ⋆ x ＝ x)
-
-Unital-right : (id : A) (_⋆_ : A → A → A) → 𝒰 _
-Unital-right {A} id _⋆_ = Π[ x ꞉ A ] (x ⋆ id ＝ x)
 
 -- unital magmas
 
@@ -28,8 +23,8 @@ record is-unital-magma {A : 𝒰 ℓ} (_⋆_ : A → A → A) : 𝒰 ℓ where
 
   field
     id   : A
-    id-l : Unital-left  id _⋆_
-    id-r : Unital-right id _⋆_
+    id-l : Unitality-lᵘ A id _⋆_
+    id-r : Unitality-rᵘ A id _⋆_
 
   instance
     Reflᵘ-is-unital-magma : Reflᵘ A
@@ -81,8 +76,8 @@ instance opaque
 
 
 record UMagma-hom
-  {ℓ ℓ′} {A : 𝒰 ℓ} {B : 𝒰 ℓ′}
-  (M : UMagma-on A) (M′ : UMagma-on B) (e : A → B) : 𝒰 (ℓ ⊔ ℓ′)
+  {ℓ ℓ′} {A : 𝒰 ℓ} {B : 𝒰 ℓ′} (e : A → B)
+  (M : UMagma-on A) (M′ : UMagma-on B) : 𝒰 (ℓ ⊔ ℓ′)
   where
     no-eta-equality
     private
@@ -97,14 +92,30 @@ unquoteDecl umagma-hom-iso = declare-record-iso umagma-hom-iso (quote UMagma-hom
 
 opaque
   umagma-hom-is-prop : ∀ {M : UMagma-on A} {M′ : UMagma-on B} {f}
-                     → is-prop (UMagma-hom M M′ f)
+                     → is-prop (UMagma-hom f M M′)
   umagma-hom-is-prop {M′} = ≅→is-of-hlevel! 1 umagma-hom-iso where
     open UMagma-on M′
 
 instance opaque
   H-Level-umagma-hom : ⦃ n ≥ʰ 1 ⦄ → ∀ {M : UMagma-on A} {M′ : UMagma-on B} {f}
-                     → H-Level n (UMagma-hom M M′ f)
+                     → H-Level n (UMagma-hom f M M′)
   H-Level-umagma-hom ⦃ s≤ʰs _ ⦄ = hlevel-prop-instance umagma-hom-is-prop
+
+instance
+  ⇒-UMagma : ⇒-notation (Σ[ X ꞉ Set ℓ ] UMagma-on ⌞ X ⌟) (Σ[ Y ꞉ Set ℓ′ ] UMagma-on ⌞ Y ⌟) (𝒰 (ℓ ⊔ ℓ′))
+  ⇒-UMagma ._⇒_ (A , X) (B , Y) = Total-hom (λ P Q → ⌞ P ⌟ → ⌞ Q ⌟) UMagma-hom {a = A} {b = B} X Y
+
+  Refl-UMagma-hom : Refl {A = UMagma-on A} (UMagma-hom refl)
+  Refl-UMagma-hom .refl .UMagma-hom.pres-⋆ _ _ = refl
+  Refl-UMagma-hom .refl .UMagma-hom.pres-id = refl
+
+  Trans-UMagma-hom
+    : {f : A → B} {g : B → C}
+    → Trans (UMagma-hom f) (UMagma-hom g) (UMagma-hom (f ∙ g))
+  Trans-UMagma-hom {f} {g} ._∙_ p q .UMagma-hom.pres-⋆ a a′ =
+    ap g (p .UMagma-hom.pres-⋆ a a′) ∙ q .UMagma-hom.pres-⋆ (f a) (f a′)
+  Trans-UMagma-hom {f} {g} ._∙_ p q .UMagma-hom.pres-id =
+    ap g (p .UMagma-hom.pres-id) ∙ q .UMagma-hom.pres-id
 
 unital-magma-on↪magma-on : UMagma-on A ↪ₜ Magma-on A
 unital-magma-on↪magma-on .fst M .n-Magma-on._⋆_ = M .UMagma-on._⋆_
@@ -119,8 +130,8 @@ record make-unital-magma {ℓ} (X : 𝒰 ℓ) : 𝒰 ℓ where
     unital-magma-is-set : is-set X
     id  : X
     _⋆_ : X → X → X
-    id-l  : Unital-left  id _⋆_
-    id-r  : Unital-right id _⋆_
+    id-l  : Unitality-lᵘ X id _⋆_
+    id-r  : Unitality-rᵘ X id _⋆_
 
   to-is-unital-magma : is-unital-magma _⋆_
   to-is-unital-magma .is-unital-magma.has-magma .is-n-magma.has-is-of-hlevel =

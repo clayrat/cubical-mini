@@ -3,8 +3,7 @@ module Data.Nat.Base where
 
 open import Foundations.Base
 
-open import Data.Empty.Base using (⊥)
-open import Data.Unit.Base  using (⊤)
+open import Data.Bool.Base using (Bool; false; true; not)
 
 open import Agda.Builtin.Nat public
   using
@@ -18,7 +17,7 @@ open import Agda.Builtin.Nat public
     ( Nat to ℕ
     ; _-_ to _∸_
     ; _*_ to _·_
-    ; _<_ to infix 3 _<ᵇ_ )
+    ; _<_ to infix 3 _<?_ )
 
 private variable
   ℓ : Level
@@ -58,10 +57,9 @@ pred : ℕ → ℕ
 pred zero    = zero
 pred (suc n) = n
 
-is-zero : ℕ → Type
-is-zero 0       = ⊤
-is-zero (suc _) = ⊥
+is-zero? : ℕ → Bool
+is-zero? 0       = true
+is-zero? (suc _) = false
 
-is-positive : ℕ → Type
-is-positive zero    = ⊥
-is-positive (suc _) = ⊤
+is-positive? : ℕ → Bool
+is-positive? = not ∘ is-zero?

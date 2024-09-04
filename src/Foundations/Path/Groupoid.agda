@@ -10,22 +10,25 @@ private variable
 opaque
   unfolding _∙ₚ_
 
-  ∙-id-l : {A : Type ℓ} {x y : A} (p : x ＝ y) → refl ∙ p ＝ p
-  ∙-id-l p = ∙-filler-r refl p ⁻¹
+  instance
+    Unit-o-Path : {A : Type ℓ} → Unit-oʰ (Path A)
+    Unit-o-Path .∙-id-o p = ∙-filler-r refl p ⁻¹
 
-  ∙-id-r : {A : Type ℓ} {x y : A} (p : x ＝ y) → p ∙ refl ＝ p
-  ∙-id-r p = ∙-filler-l p refl ⁻¹
+    Unit-i-Path : {A : Type ℓ} → Unit-iʰ (Path A)
+    Unit-i-Path .∙-id-i p = ∙-filler-l p refl ⁻¹
 
-  ∙-assoc : {A : Type ℓ} {x y z w : A} (p : w ＝ x) (q : x ＝ y) (r : y ＝ z)
-          → p ∙ (q ∙ r) ＝ (p ∙ q) ∙ r
-  ∙-assoc p q r i = ∙-filler-l p q i ∙ ∙-filler-r q r (~ i)
+    Assoc-Path : {A : Type ℓ} → Assocʰ (Path A)
+    Assoc-Path .∙-assoc p q r i = ∙-filler-l p q i ∙ ∙-filler-r q r (~ i)
 
-  ∙-inv-l : {A : Type ℓ} {x y : A} (p : x ＝ y) → p ⁻¹ ∙ p ＝ refl
-  ∙-inv-l {y} p i j = hcomp (∂ j ∨ i) λ where
-    k (j = i0) → p (k ∨ i)
-    k (j = i1) → p (k ∨ i)
-    k (i = i1) → y
-    k (k = i0) → p i
+    Inv-o-Path : {A : Type ℓ} → Inv-oʰ (Path A)
+    Inv-o-Path .∙-inv-o {x} p i j = hcomp (∂ j ∨ i) λ where
+      k (j = i0) → p (k ∨ i)
+      k (j = i1) → p (k ∨ i)
+      k (i = i1) → x
+      k (k = i0) → p i
+
+    Inv-i-Path : {A : Type ℓ} → Inv-iʰ (Path A)
+    Inv-i-Path .∙-inv-i p = ∙-inv-o (sym p)
 
   ∙-cancel-l : {A : Type ℓ} {x y z : A}
                (p : x ＝ y) (q : y ＝ z)
@@ -36,9 +39,6 @@ opaque
     k (i = i1) → q (j ∧ k)
     k (j = i0) → y
     k (j = i1) → ∙-filler-r p q (~ i) k
-
-  ∙-inv-r : {A : Type ℓ} {x y : A} (p : x ＝ y) → p ∙ p ⁻¹ ＝ refl
-  ∙-inv-r p = ∙-inv-l (sym p)
 
   ∙-cancel-r : {A : Type ℓ} {x y z : A}
                (p : x ＝ y) (q : z ＝ y)

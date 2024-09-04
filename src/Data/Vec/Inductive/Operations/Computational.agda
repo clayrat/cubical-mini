@@ -28,7 +28,7 @@ replace : Fin n → A → Vec A n → Vec A n
 replace (mk-fin 0)             y (_ ∷ xs) = y ∷ xs
 replace (mk-fin (suc k) {(b)}) y (x ∷ xs) = x ∷ replace (mk-fin k {b}) y xs
 
-vec→list : Vec A n → Σ[ xs ꞉ List A ] Erased (length xs ＝ n)
+vec→list : {A : Type ℓ} → Vec A n → Σ[ xs ꞉ List A ] Erased (length xs ＝ n)
 vec→list [] = [] , erase refl
 vec→list (x ∷ xs) =
   let xs′ , erase p = vec→list xs
@@ -41,7 +41,7 @@ list→vec (x ∷ xs) =
   in suc len′ , x ∷ xs′ , ap suc p
 
 vec-fun-equiv : {n : ℕ} → Vec A n ≃ (Fin n → A)
-vec-fun-equiv {n} = ≅→≃ (lookup , iso tabulate (lemma₁ {n = n}) lemma₂) where
+vec-fun-equiv {n} = ≅→≃ $ iso lookup tabulate (fun-ext $ lemma₁ {n = n}) (fun-ext lemma₂) where
   lemma₁ : {n : ℕ} → Π[ f ꞉ (Fin n → A) ] (lookup {n = n} (tabulate f) ＝ f)
   lemma₁ {n = zero} _ = fun-ext λ()
   lemma₁ {n = suc n} f = fun-ext λ where

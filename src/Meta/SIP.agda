@@ -3,8 +3,6 @@ module Meta.SIP where
 
 open import Meta.Prelude
 
-open import Foundations.Univalence.SIP public
-
 open import Meta.Effect.Alt
 open import Meta.Literals.FromNat
 open import Meta.Literals.FromProduct
@@ -20,6 +18,7 @@ open import Data.Reflection.Argument
 open import Data.Reflection.Instances.FromString
 open import Data.Reflection.Name
 open import Data.Reflection.Term
+open import Data.Unit.Base
 
 
 private variable

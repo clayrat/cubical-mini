@@ -27,20 +27,23 @@ infixr 6 ∃!-syntax
 
 syntax ∃!-syntax A (λ x → B) = ∃![ x ꞉ A ] B
 
-open is-iso
+_,ₚ_ = Σ-pathᴾ
+infixr 4 _,ₚ_
+
+open Iso
 
 Σ-pathᴾ-iso
   : {A : I → Type ℓ} {B : (i : I) → A i → Type ℓ′}
     {x : Σ (A i0) (B i0)} {y : Σ (A i1) (B i1)}
   → Σ[ p ꞉ ＜ x .fst ／ A ＼ y .fst ＞ ] ＜ x .snd ／ (λ i → B i (p i)) ＼ y .snd ＞
   ≅ ＜ x ／ (λ i → Σ (A i) (B i)) ＼ y ＞
-Σ-pathᴾ-iso .fst (p , q) i = p i , q i
-Σ-pathᴾ-iso .snd .inv p = (λ i → p i .fst) , (λ i → p i .snd)
-Σ-pathᴾ-iso .snd .rinv _ = refl
-Σ-pathᴾ-iso .snd .linv _ = refl
+Σ-pathᴾ-iso .to (p , q) i = p i , q i
+Σ-pathᴾ-iso .from p = (λ i → p i .fst) , (λ i → p i .snd)
+Σ-pathᴾ-iso .inverses .Inverses.inv-o = refl
+Σ-pathᴾ-iso .inverses .Inverses.inv-i = refl
 
 Σ-path-iso
-  : {x y : Σ A B}
+  : {A : Type ℓ} {B : A → Type ℓ′} {x y : Σ A B}
   → Σ[ p ꞉ x .fst ＝ y .fst ] (subst B p (x .snd) ＝ y .snd)
   ≅ (x ＝ y)
 Σ-path-iso {B} {x} {y} = transport
@@ -52,16 +55,21 @@ open is-iso
        → a ＝ c → b ＝ d → (a , b) ＝ (c , d)
 ×-path ac bd i = (ac i , bd i)
 
-Σ-ap-snd : Π[ x ꞉ A ] (P x ≃ Q x) → Σ A P ≃ Σ A Q
+×-path-inv : {B : Type ℓ′} {a c : A} {b d : B}
+       → (a , b) ＝ (c , d) → (a ＝ c) × (b ＝ d)
+×-path-inv p = ap fst p , ap snd p
+
+Σ-ap-snd : {A : Type ℓ} {P : A → Type ℓ′} {Q : A → Type ℓ″}
+         → Π[ x ꞉ A ] (P x ≃ Q x) → Σ A P ≃ Σ A Q
 Σ-ap-snd {A} {P} {Q} pointwise = ≅→≃ morp where
   pwise : Π[ x ꞉ A ] (P x ≅ Q x)
-  pwise x = _ , is-equiv→is-iso (pointwise x .snd)
+  pwise = ≃→≅ ∘ pointwise
 
   morp : Σ _ P ≅ Σ _ Q
-  morp .fst (i , x) = i , pointwise i .fst x
-  morp .snd .inv (i , x) = i , pwise i .snd .inv x
-  morp .snd .rinv (i , x) = ap² _,_ refl (pwise i .snd .rinv _)
-  morp .snd .linv (i , x) = ap² _,_ refl (pwise i .snd .linv _)
+  morp .to = second λ {i} → pointwise i .fst
+  morp .from = second λ {i} → pwise i .from
+  morp .inverses .Inverses.inv-o = fun-ext λ (i , x) → ap² _,_ refl (pwise i .inv-o # x)
+  morp .inverses .Inverses.inv-i = fun-ext λ (i , x) → ap² _,_ refl (pwise i .inv-i # x)
 
 Σ-ap-fst : (e : A ≃ A′) → Σ A (B ∘ e .fst) ≃ Σ A′ B
 Σ-ap-fst {A} {A′} {B} e = intro , intro-is-equiv
@@ -87,48 +95,50 @@ open is-iso
     ctr = (A-ctr , B-ctr) , Σ-pathᴾ α P-ctr
 
     is-ctr : ∀ y → ctr ＝ y
-    is-ctr ((r , s) , p) = λ i → (a＝r i , b≠s i) , Σ-pathᴾ (α＝ρ i) (coh i) where
-      open Σ (Σ-pathᴾ-iso .snd .inv p) renaming (fst to ρ; snd to σ)
-      open Σ (Σ-pathᴾ-iso .snd .inv (e .snd .equiv-proof a′ .snd (r , ρ)))
-        renaming (fst to a＝r; snd to α＝ρ)
+    is-ctr ((r , s) , p) = λ i → (a=r i , b≠s i) , α=ρ i ,ₚ coh i where
+      open Σ (Σ-pathᴾ-iso .from p) renaming (fst to ρ; snd to σ)
+      open Σ (Σ-pathᴾ-iso .from (e .snd .equiv-proof a′ .snd (r , ρ)))
+        renaming (fst to a=r; snd to α=ρ)
 
-      b≠s : PB (ap (e .fst) a＝r) B-ctr s
-      b≠s i = comp (λ k → B (α＝ρ i (~ k))) (∂ i) λ where
+      b≠s : PB (ap (e .fst) a=r) B-ctr s
+      b≠s i = comp (λ k → B (α=ρ i (~ k))) (∂ i) λ where
         k (i = i0) → P-ctr (~ k)
         k (i = i1) → σ (~ k)
         k (k = i0) → b
 
-      coh : ＜ P-ctr ／ (λ i → PB (α＝ρ i) (b≠s i) b) ＼ σ ＞
-      coh i j = fill (λ k → B (α＝ρ i (~ k))) (∂ i) (~ j) λ where
+      coh : ＜ P-ctr ／ (λ i → PB (α=ρ i) (b≠s i) b) ＼ σ ＞
+      coh i j = fill (λ k → B (α=ρ i (~ k))) (∂ i) (~ j) λ where
         k (i = i0) → P-ctr (~ k)
         k (i = i1) → σ (~ k)
         k (k = i0) → b
 
-Σ-ap : (e : A ≃ A′)
+Σ-ap : {A : Type ℓ} {A′ : Type ℓ′} {P : A → Type ℓ″} {Q : A′ → Type ℓ‴}
+       (e : A ≃ A′)
      → Π[ a ꞉ A ] (P a ≃ Q (e .fst a))
      → Σ A P ≃ Σ A′ Q
-Σ-ap e e′ = Σ-ap-snd e′ ∙ₑ Σ-ap-fst e
+Σ-ap e e′ = Σ-ap-snd e′ ∙ Σ-ap-fst e
 
 ×-ap : {B : Type ℓ′} {C : Type ℓ″} {D : Type ℓ‴}
      → A ≃ C → B ≃ D → A × B ≃ C × D
 ×-ap ac bd = Σ-ap ac (λ _ → bd)
 
-Σ-assoc : {B : A → Type ℓ′} {C : (a : A) → B a → Type ℓ″}
+Σ-assoc : {A : Type ℓ} {B : A → Type ℓ′} {C : (a : A) → B a → Type ℓ″}
         → Σ[ x ꞉ A ] Σ[ y ꞉ B x ] C x y
         ≃ Σ[ (x , y) ꞉ Σ _ B ] C x y
 Σ-assoc .fst (x , y , z) = (x , y) , z
 Σ-assoc .snd .equiv-proof y .fst = strict-contr-fibres (λ { ((x , y) , z) → x , y , z}) y .fst
 Σ-assoc .snd .equiv-proof y .snd = strict-contr-fibres (λ { ((x , y) , z) → x , y , z}) y .snd
 
-Σ-Π-distrib : {B : A → Type ℓ′} {C : (x : A) → B x → Type ℓ″}
+×-assoc : {B : Type ℓ′} {C : Type ℓ″}
+        → A × B × C ≃ (A × B) × C
+×-assoc = Σ-assoc
+
+Σ-Π-distrib : {A : Type ℓ} {B : A → Type ℓ′} {C : (x : A) → B x → Type ℓ″}
             → Π[ x ꞉ A ] Σ[ y ꞉ B x ] C x y
             ≃ Σ[ f ꞉ Π[ x ꞉ A ] B x ] Π[ x ꞉ A ] C x (f x)
 Σ-Π-distrib .fst f = (λ x → f x .fst) , λ x → f x .snd
 Σ-Π-distrib .snd .equiv-proof y .fst = strict-contr-fibres (λ f x → f .fst x , f .snd x) y .fst
 Σ-Π-distrib .snd .equiv-proof y .snd = strict-contr-fibres (λ f x → f .fst x , f .snd x) y .snd
-
-_,ₚ_ = Σ-pathᴾ
-infixr 4 _,ₚ_
 
 Σ-prop-pathᴾ
   : {A : I → Type ℓ} {B : ∀ i → A i → Type ℓ′}
@@ -148,11 +158,11 @@ infixr 4 _,ₚ_
   : (bp : ∀ x → is-prop (B x))
   → {x y : Σ _ B}
   → is-equiv (Σ-prop-path bp {x} {y})
-Σ-prop-path-is-equiv bp {x} {y} = is-iso→is-equiv isom where
-  isom : is-iso _
-  isom .inv = ap fst
-  isom .linv p = refl
-  isom .is-iso.rinv p i j
+Σ-prop-path-is-equiv bp {x} {y} = is-inv→is-equiv spi where
+  spi : is-invertible (Σ-prop-path bp)
+  spi .is-invertible.inv = ap fst
+  spi .is-invertible.inverses .Inverses.inv-i = refl
+  spi .is-invertible.inverses .Inverses.inv-o i p j
     = p j .fst
     , is-prop→pathᴾ (λ k → path-is-of-hlevel-same 1 (bp (p k .fst))
                                       {x = Σ-prop-path bp {x} {y} (ap fst p) k .snd}
@@ -183,26 +193,22 @@ infixr 4 _,ₚ_
 Σ-prop-square B-prop {p} {q} {r} {s} θ = Σ-square θ
   (is-prop→squareᴾ (λ i j → B-prop (θ i j)) (ap snd q) (ap snd p) (ap snd s) (ap snd r))
 
-Σ-contract-fst : (A-c : is-contr A) → Σ[ x ꞉ A ] B x ≃ B (centre A-c)
+Σ-contract-fst : {A : Type ℓ} {B : A → Type ℓ′}
+                 (A-c : is-contr A)
+               → Σ[ x ꞉ A ] B x ≃ B (centre A-c)
 Σ-contract-fst {B} A-c = ≅→≃ the-iso where
-  the-iso : Iso _ _
-  the-iso .fst (x , b) = subst B (sym $ paths A-c x) b
-  the-iso .snd .inv = _ ,_
-  the-iso .snd .rinv b′
-    = sym $ subst-filler B refl b′
+  the-iso : _ ≅ _
+  the-iso .to (x , b) = subst B (paths A-c x ⁻¹) b
+  the-iso .from = centre A-c ,_
+  the-iso .inverses .Inverses.inv-o = fun-ext λ b′ → sym
+    $ subst-filler B refl b′
     ∙ ap (λ f → subst B f b′) (is-contr→is-prop (path-is-of-hlevel-same 0 A-c) _ _)
-  the-iso .snd .linv (x , b) = Σ-pathᴾ (paths A-c _) $ symᴾ $ subst-filler B (sym $ paths A-c _) b
+  the-iso .inverses .Inverses.inv-i = fun-ext λ (x , b) →
+    paths A-c x ,ₚ symᴾ (subst-filler B (paths A-c x ⁻¹) b)
 
 Σ-contract-snd : (∀ x → is-contr (B x)) → Σ A B ≃ A
-Σ-contract-snd B-contr = ≅→≃ the-iso where
-  the-iso : Iso _ _
-  the-iso .fst (a , b) = a
-  the-iso .snd .inv x = x , centre (B-contr _)
-  the-iso .snd .rinv x = refl
-  the-iso .snd .linv (a , b) i = a , paths (B-contr a) b i
-
-Σ-map-snd : ({x : A} → P x → Q x) → Σ _ P → Σ _ Q
-Σ-map-snd f (x , y) = (x , f y)
+Σ-contract-snd B-contr = ≅→≃ $ iso fst (_, centre (B-contr _)) refl
+  λ i (a , b) → a , paths (B-contr a) b i
 
 Σ-inj-set
   : ∀ {x y z}
@@ -214,7 +220,7 @@ infixr 4 _,ₚ_
     (from-pathᴾ (ap snd path))
 
 Σ-swap
-  : {B : Type ℓ′} {C : A → B → Type ℓ″}
+  : {A : Type ℓ} {B : Type ℓ′} {C : A → B → Type ℓ″}
   → Σ[ x ꞉ A ] Σ[ y ꞉ B ] C x y
   ≃ Σ[ y ꞉ B ] Σ[ x ꞉ A ] C x y
 Σ-swap .fst (x , y , f) = y , x , f

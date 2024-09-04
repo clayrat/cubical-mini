@@ -3,9 +3,11 @@ module Meta.Effect.Idiom where
 
 open import Foundations.Base
 
-open import Meta.Effect.Map public
+open import Meta.Effect.Base
+open import Meta.Effect.Map.Base
 
 open import Data.Bool.Base
+open import Data.Unit.Base
 
 private variable
   ℓᵃ ℓᵇ ℓᶜ ℓᵈ : Level

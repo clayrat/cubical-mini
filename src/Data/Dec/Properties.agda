@@ -7,6 +7,7 @@ open import Meta.Effect.Idiom
 
 open import Data.Dec.Base as Dec
 open import Data.Dec.Path
+open import Data.Empty.Base
 open import Data.Empty.Properties
 open import Data.Sum.Properties
 import Data.Truncation.Propositional as ∥-∥₁
@@ -23,16 +24,16 @@ private variable
   (Dec.rec (yes <$>_) (pure ∘ no ∘ contra pure))
 
 ae : A ≃ B → Dec A ≃ Dec B
-ae {A} {B} e = ≅→≃ $ to , iso from ri li where
+ae {A} {B} e = ≅→≃ $ iso to from (fun-ext ri) (fun-ext li) where
   to   = Dec.dmap (e    $_) (contra (e ⁻¹ $_))
   from = Dec.dmap (e ⁻¹ $_) (contra (e    $_))
 
   module e = Equiv e
 
-  ri : from is-right-inverse-of to
+  ri : from section-of′ to
   ri = Dec.elim (ap yes ∘ e.ε) (ap no ∘ λ _ → prop!)
 
-  li : from is-left-inverse-of to
+  li : from retract-of′ to
   li = Dec.elim (ap yes ∘ e.η) (ap no ∘ λ _ → prop!)
 
 ≃→dec : (B ≃ A) → Dec A → Dec B

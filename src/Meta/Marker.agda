@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --no-exact-split #-}
 module Meta.Marker where
 
-open import Foundations.Base
+open import Meta.Prelude
 
 open import Meta.Reflection.Base
 open import Meta.Literals.FromNat
@@ -23,6 +23,7 @@ open import Data.Reflection.Literal
 open import Data.Reflection.Meta
 open import Data.Reflection.Name
 open import Data.Reflection.Term
+open import Data.Unit.Base
 
 private variable
   ℓ : Level
@@ -41,7 +42,7 @@ abstract-marker = go 0 where
   go k (var j args) = var j' <$> go* k args
     where
       j' : ℕ
-      j' with j <ᵇ k
+      j' with j <? k
       ... | false = suc j
       ... | true = j
   go k (con c args) = con c <$> go* k args

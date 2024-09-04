@@ -10,15 +10,14 @@ private variable
   E : Precategory o″ h″
   B : Precategory o‴ h‴
 
-infixr 8 _×_
-_×_ : (C : Precategory o h) (D : Precategory o′ h′) → Precategory _ _
-C × D = go where
+_×ᶜ_ : (C : Precategory o h) (D : Precategory o′ h′) → Precategory _ _
+C ×ᶜ D = go where
   module C = Precategory C
   module D = Precategory D
   open Precategory
   go : Precategory _ _
-  go .Ob = C.Ob ×ₜ D.Ob
-  go .Hom (c , d) (c′ , d′) = C.Hom c c′ ×ₜ D.Hom d d′
+  go .Ob = C.Ob × D.Ob
+  go .Hom (c , d) (c′ , d′) = (c ⇒ c′) × (d ⇒ d′)
   go .Hom-set = hlevel!
   go .id = C.id , D.id
   go ._∘_ (f , g) (f′ , g′) = f C.∘ f′ , g D.∘ g′
@@ -26,6 +25,10 @@ C × D = go where
   go .id-r (f , g) = ×-path (C.id-r f) (D.id-r g)
   go .assoc (f , g) (f′ , g′) (f″ , g″) =
     ×-path (C.assoc f f′ f″) (D.assoc g g′ g″)
+
+instance
+  ×-Precategory : ×-notation (Precategory o h) (Precategory o′ h′) _
+  ×-Precategory .×-notation._×_ = _×ᶜ_
 
 open Functor
 
@@ -41,14 +44,18 @@ Snd .F₁ = snd
 Snd .F-id = refl
 Snd .F-∘ _ _ = refl
 
-Cat⟨_,_⟩ : Functor E C → Functor E D → Functor E (C × D)
+Cat⟨_,_⟩ : E ⇒ C → E ⇒ D → E ⇒ (C × D)
 Cat⟨ F , G ⟩ .F₀ = < F .F₀ , G .F₀ >
 Cat⟨ F , G ⟩ .F₁ = < F .F₁ , G .F₁ >
 Cat⟨ F , G ⟩ .F-id = ×-path (F .F-id) (G .F-id)
 Cat⟨ F , G ⟩ .F-∘ _ _ = ×-path (F .F-∘ _ _) (G .F-∘ _ _)
 
-_×ᶠ_ : Functor B D → Functor C E → Functor (B × C) (D × E)
+_×ᶠ_ : B ⇒ D → C ⇒ E → (B × C) ⇒ (D × E)
 (F ×ᶠ G) .F₀ = bimap (F .F₀) (G .F₀)
 (F ×ᶠ G) .F₁ = bimap (F .F₁) (G .F₁)
 (F ×ᶠ G) .F-id = ×-path (F .F-id) (G .F-id)
 (F ×ᶠ G) .F-∘ _ _ = ×-path (F .F-∘ _ _) (G .F-∘ _ _)
+
+instance
+  ×-Functor : ×-notation (B ⇒ D) (C ⇒ E) _
+  ×-Functor .×-notation._×_ = _×ᶠ_

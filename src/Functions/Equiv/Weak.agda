@@ -2,11 +2,9 @@
 module Functions.Equiv.Weak where
 
 open import Meta.Prelude
-
 -- Weak equivalences are actually builtin in Agda
 open import Foundations.Equiv public
 
-open import Meta.Effect.Bind
 open import Meta.Extensionality
 
 open import Data.Truncation.Propositional
@@ -37,7 +35,7 @@ is-surjective-embedding≃is-equiv = prop-extₑ!
 
 -- TODO move?
 ≅→extensional
-  : Iso B A
+  : B ≅ A
   → Extensional A ℓ″
   → Extensional B ℓ″
 ≅→extensional f = ≃→extensional (≅→≃ f)
