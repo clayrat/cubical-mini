@@ -2,7 +2,6 @@
 module Data.Nat.GCD.Properties where
 
 open import Foundations.Base
-open import Correspondences.Wellfounded
 
 open import Data.Empty
 open import Data.Sum
@@ -12,11 +11,13 @@ open import Data.Nat.Properties
 open import Data.Nat.DivMod
 open import Data.Nat.DivMod.Inductive
 open import Data.Nat.GCD
+open import Data.Reflects
+open import Data.Wellfounded
 
 gcd-refl : ∀ x → gcd x x ＝ x
 gcd-refl x with ≤-split x x
-... | inl p       = absurd (¬sucn≤n p)
-... | inr (inl p) = absurd (¬sucn≤n p)
+... | inl p       = absurd (false! p)
+... | inr (inl p) = absurd (false! p)
 ... | inr (inr _) = refl
 
 gcd′[m,n]∣m,n : ∀ {m n} rec n<m → (gcd′ m n rec n<m ∣ m) × (gcd′ m n rec n<m ∣ n)
@@ -31,20 +32,20 @@ gcd′-greatest {m} {n@(suc n-1)} (acc rec) n<m c∣m c∣n =
 
 gcd[m,n]∣m : ∀ m n → gcd m n ∣ m
 gcd[m,n]∣m m n with ≤-split m n
-... | inl  m<n      = gcd′[m,n]∣m,n (Wf-< n) m<n .snd
-... | inr (inl n<m) = gcd′[m,n]∣m,n (Wf-< m) n<m .fst
+... | inl  m<n      = gcd′[m,n]∣m,n (<-wf n) m<n .snd
+... | inr (inl n<m) = gcd′[m,n]∣m,n (<-wf m) n<m .fst
 ... | inr (inr _)   = ∣-refl m
 
 gcd[m,n]∣n : ∀ m n → gcd m n ∣ n
 gcd[m,n]∣n m n with ≤-split m n
-... | inl  m<n      = gcd′[m,n]∣m,n (Wf-< n) m<n .fst
-... | inr (inl n<m) = gcd′[m,n]∣m,n (Wf-< m) n<m .snd
+... | inl  m<n      = gcd′[m,n]∣m,n (<-wf n) m<n .fst
+... | inr (inl n<m) = gcd′[m,n]∣m,n (<-wf m) n<m .snd
 ... | inr (inr e)   = subst (m ∣_) e (∣-refl m)
 
 gcd-greatest : ∀ {m n c} → c ∣ m → c ∣ n → c ∣ gcd m n
 gcd-greatest {m} {n} c∣m c∣n with ≤-split m n
-... | inl  m<n      = gcd′-greatest (Wf-< n) m<n c∣n c∣m 
-... | inr (inl n<m) = gcd′-greatest (Wf-< m) n<m c∣m c∣n
+... | inl  m<n      = gcd′-greatest (<-wf n) m<n c∣n c∣m
+... | inr (inl n<m) = gcd′-greatest (<-wf m) n<m c∣m c∣n
 ... | inr (inr e)   = c∣m
 
 gcd-comm : ∀ m n → gcd m n ＝ gcd n m

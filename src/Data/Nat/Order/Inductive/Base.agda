@@ -14,6 +14,7 @@ open import Data.Nat.Path
 open import Data.Nat.Properties
 open import Data.Reflects.Base
 open import Data.Sum.Base
+open import Data.Wellfounded.Base
 
 private variable m n k : ℕ
 
@@ -169,11 +170,27 @@ z<s : 0 < suc n
 z<s = s≤s z≤
 
 
+-- well-foundedness
+
+<-ind : ∀ {ℓ″} {P : ℕ → 𝒰 ℓ″}
+      → (∀ x → (∀ y → y < x → P y) → P x)
+      → ∀ x → P x
+<-ind {P} ih x = go x (suc x) <-ascend
+  where
+  go : ∀ m n → m < n → P m
+  go m (suc n) (s≤s le) = ih m λ y y<m → go y n (<-≤-trans y<m le)
+
+<-wf : Wf _<_
+<-wf = from-induction _<_ λ P → <-ind
+
 -- Addition
 
+≤-+-r : (x y : ℕ) → x ≤ x + y
+≤-+-r  zero   y = z≤
+≤-+-r (suc x) y = s≤s (≤-+-r x y)
+
 ≤-+-l : (x y : ℕ) → x ≤ y + x
-≤-+-l zero    y = z≤
-≤-+-l (suc x) y = transport (sym (ap (suc x ≤_) (+-suc-r y x))) (s≤s (≤-+-l x y))
+≤-+-l x y = subst (x ≤_) (+-comm x y) (≤-+-r x y)
 
 ≤-weak-+l : (x y z : ℕ) → x ≤ z → x ≤ y + z
 ≤-weak-+l x  zero   z p = p
@@ -185,6 +202,10 @@ z<s = s≤s z≤
 
 
 -- Subtraction
+
++∸=id : ∀ m n → m ≤ n → m + (n ∸ m) ＝ n
++∸=id .0        n        z≤              = refl
++∸=id .(suc m) .(suc n) (s≤s {m} {n} le) = ap suc (+∸=id m n le)
 
 suc-pred : (n : ℕ) → n > 0 → n ＝ suc (pred n)
 suc-pred (suc _) _ = refl
