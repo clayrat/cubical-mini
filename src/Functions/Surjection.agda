@@ -81,13 +81,6 @@ split-surjective→epic
 split-surjective→epic ssrj g h p =
   fun-ext λ x → let (a , e) = ssrj x in ap g (e ⁻¹) ∙ happly p a ∙ ap h e
 
--- TODO move
--- is-surjective→set-epic
---   : is-surjective f
---   → ∀ {C : Set ℓ″} (g h : B → ⌞ C ⌟) → g ∘ f ＝ h ∘ f → g ＝ h
--- is-surjective→set-epic {f} srj g h p =
---   fun-ext λ x → rec! (λ a e → ap g (e ⁻¹) ∙ happly p a ∙ ap h e) (srj x)
-
 ≃→↠! : A ≃ B → A ↠! B
 ≃→↠! = second is-equiv→split-surjective
 
