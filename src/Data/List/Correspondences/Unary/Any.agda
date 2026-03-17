@@ -268,6 +268,10 @@ any←map : {A : 𝒰 ℓᵃ} {B : 𝒰 ℓᵇ} {S : Pred B ℓ′} {f : A → B
 any←map {xs = x ∷ xs} (here sfx) = here sfx
 any←map {xs = x ∷ xs} (there a)  = there (any←map a)
 
+any-reverse : {xs : List A} → Any P xs → Any P (reverse xs)
+any-reverse {xs = x ∷ xs} (here px) = any-++-r (here px)
+any-reverse {xs = x ∷ xs} (there a) = any-++-l (any-reverse a)
+
 any→ℕ : {@0 xs : List A} → Any P xs → ℕ
 any→ℕ (here _)  = 0
 any→ℕ (there a) = suc (any→ℕ a)

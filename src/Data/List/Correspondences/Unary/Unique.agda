@@ -187,6 +187,8 @@ uniq≈len=→uniq : {xs ys : List A}
 uniq≈len=→uniq es seq ux =
   uniq⊆len≤→uniq ux (seq .fst) (=→≤ (es ⁻¹))
 
+-- reverse
+
 uniq-reverse : {xs : List A}
              → Uniq xs → Uniq (reverse xs)
 uniq-reverse = uniq≈len=→uniq (reverse-length ⁻¹) reverse-≈
