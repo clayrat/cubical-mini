@@ -15,6 +15,9 @@ open import Data.Nat.Order.Base
 open import Data.Sum.Base
   using (_⊎ₜ_; inl; inr)
 open import Data.Fin.Inductive.Base
+open import Data.List.Base
+  using (List; []; _∷_)
+open import Data.List.Instances.Map
 
 private variable
   ℓ : Level
@@ -33,3 +36,7 @@ fmax {n = suc n} = fsuc fmax
 fmax0 : 0 < n → Fin n
 fmax0 {n = zero}  z<n = false! z<n
 fmax0 {n = suc n} z<n = fmax
+
+enumerate : (n : ℕ) → List (Fin n)
+enumerate  zero   = []
+enumerate (suc n) = fzero ∷ mapₗ fsuc (enumerate n)
