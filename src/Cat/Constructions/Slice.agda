@@ -1,5 +1,7 @@
 {-# OPTIONS --safe #-}
 open import Cat.Prelude
+open import Cat.Diagram.Terminal
+open import Cat.Functor.Properties
 
 module Cat.Constructions.Slice {o ℓ} (C : Precategory o ℓ) where
 open Precategory C
@@ -85,3 +87,28 @@ module _ ⦃ hl : ∀{x y} → H-Level 2 (Hom x y) ⦄ where
     go .id-l _ = ext (C.id-l _)
     go .id-r _ = ext (C.id-r _)
     go .assoc _ _ _ = ext (C.assoc _ _ _)
+
+  Forget/ : Functor (Slice c) C
+  Forget/ .Functor.F₀ o    = o .domain
+  Forget/ .Functor.F₁ f    = f ./-Hom.map
+  Forget/ .Functor.F-id    = refl
+  Forget/ .Functor.F-∘ _ _ = refl
+
+  Forget/-is-faithful : ∀ {c} → is-faithful (Forget/ {c})
+  Forget/-is-faithful p = ext p
+
+  module _ {c : Ob} where
+    import Cat.Reasoning C as C
+    import Cat.Reasoning (Slice c) as C/c
+    open /-Hom
+    open /-Obj
+
+    Slice-id-is-terminal : is-terminal (Slice c) (cut C.id)
+    Slice-id-is-terminal obj .fst .map      = obj .map
+    Slice-id-is-terminal obj .fst .commutes = C.id-l _
+    Slice-id-is-terminal obj .snd other =
+      ext (other .commutes ⁻¹ ∙ C.id-l _)
+
+    Slice-terminal-object : Terminal (Slice c)
+    Slice-terminal-object .Terminal.top   = cut C.id
+    Slice-terminal-object .Terminal.has-⊤ = Slice-id-is-terminal
